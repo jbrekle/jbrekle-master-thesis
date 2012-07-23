@@ -1,0 +1,234 @@
+\section{Implementierung}
+\label{sec:implementierung}
+Im Folgenden werde ich einige wichtige implementierungsspezifische Details erklären, die sich bei der Entwicklung als nützlich herausgestellt haben, beziehungsweise zugrundeliegende Überlegungen des Designs erläutern.
+
+\subsection{Die Query Klasse}
+Ausgangspunkt der Implementierung war die Query Klasse, die den Wurzelknoten der Datenstruktur \texttt{Query2} darstellt. Ich werde die Überlegungen zeigen, die zum jetzigen Design geführt haben, und dabei sehr nah an der Grammatik bleiben.\\
+Zunächst betrachten wir die Regeln, die die verschiedenen Typen von Querys repräsentieren:\\
+\vspace{0.05cm}\\
+\texttt{
+\begin{tabular}{|lllp{0.57\textwidth}|}
+\hline
+{[1]} &{\textbf{Query}} 	& {::=} & {Prologue ( SelectQuery | ConstructQuery | DescribeQuery | AskQuery )}\\
+\hline 	
+{[2]} &{\textbf{Prologue}} 	& {::=} &  {BaseDecl? PrefixDecl*} \\
+\hline
+{[5]} &{\textbf{SelectQuery}} 	& {::=} &  {'SELECT' ( 'DISTINCT' | 'REDUCED' )? ( Var+ | '*' ) DatasetClause* WhereClause SolutionModifier } \\
+\hline
+{[6]} &{\textbf{DescribeQuery}} & {::=} &  {'DESCRIBE' ( VarOrIRIref+ | '*' ) DatasetClause* WhereClause? SolutionModifier} \\
+\hline
+{[7]} &{\textbf{ConstructQuery}} & {::=} &  {'CONSTRUCT' ConstructTemplate DatasetClause* WhereClause SolutionModifier } \\
+\hline
+{[8]} &{\textbf{AskQuery}} 	& {::=} &  {'ASK' DatasetClause* WhereClause} \\
+\hline
+\end{tabular}
+}\\
+\vspace{0.1cm}\\
+Die verschiedenen Querys haben vieles gemeinsam: den Prolog (bestehend aus einer optionalen Base Deklaration und beliebig vielen Prefix Deklarationen), eine Dataset Klausel (FROMs) und eine WHERE Klausel. Auch der SolutionModifier (also ORDER Anweisungen sowie LIMIT und OFFSET) wird bei allen Query-Arten außer dem ASK-Query genutzt. Ich habe mich dafür entschieden, diese vier Typen in einer Klasse zu realisieren. Die Unterscheidung wird also nicht durch Vererbung, sondern in der Query-Klasse getroffen: Eine \texttt{setQueryType}-Methode kann genutzt werden, um den Typ zu konfigurieren. Dies bringt den Vorteil, dass man beispielsweise einen ASK-Query mit einem Befehl in einen SELECT-Query umformen kann. So könnte man zunächst einen ASK gegen die Datenbank ausführen und wenn das Ergebnis \texttt{true} ist, den Query in ein SELECT umwandeln und damit die gefundenen Ergebnisse auslesen. Die \texttt{setQueryType}-Methode initialisiert alle nötigen Komponenten (z.B. beim Wechsel des Typs zu CONSTRUCT, die Instanzierung des \texttt{ConstructGraphPattern} das zusätzlich zum WHERE-Teil beötigt wird) und deaktiviert unnötige (z.B. benötigt ein DESCRIBE-Query keine SolutionModifier).\\ 
+
+\subsection{Interfaces}
+Betrachten wir die Komponenten eines Tripels eines GraphPatterns. Dort darf z.B. das Objekt eines Tripels eine Variable, IRI, BlankNode und Literal sein. Das Prädikat darf Variable oder Resource sein usw. Um dies zu strukturieren existieren in der SPARQL-Grammatik gewisse Ableitungen, die ich gesondert behandele. Es sind Regeln, die (wie natürlich viele andere Regeln auch) nicht sofort produktiv sind, die aber statt die Typen der Teilausdrücke zu definieren (\texttt{LimitClause ::= 'LIMIT' INTEGER}), eine Hierarchie der Typen aufbauen, indem sie die Form einer Disjunktion haben (\texttt{GraphNode ::= VarOrTerm | TriplesNode}):\\
+\vspace{0.1cm}\\
+\texttt{
+\begin{tabular}{|lllp{0.6\textwidth}|}
+\hline
+{[37]} &{\textbf{Verb}} 	& {::=} & {VarOrIriRef | 'a'}\\
+\hline 	
+{[38]} &{\textbf{TriplesNode}} 	& {::=} &  {Collection | BlankNodePropertyList} \\
+\hline
+{[41]} &{\textbf{GraphNode}} 	& {::=} &  {VarOrTerm | TriplesNode} \\
+\hline
+{[42]} &{\textbf{VarOrTerm}} & {::=} &  {Var | GraphTerm} \\
+\hline
+{[43]} &{\textbf{VarOrIriRef}} & {::=} &  {Var | IRIref} \\
+\hline
+{[45]} &{\textbf{GraphTerm}} 	& {::=} &  {IRIref | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | NIL} \\
+\hline
+\end{tabular}
+}\\
+\vspace{0.1cm}\\
+Die Hierarchie lässt sich in zwei Bäumen darstellen:\\
+\vspace{0.1cm}\\
+\textbf{
+\texttt{
+\synttree[GraphNode[VarOrTerm[Var][GraphTerm[IriRef][Literals*][BlankNode][NIL]]][TriplesNode[Collection][BlankNodePropertyList]]]\\
+\begin{center}
+\synttree[Verb[VarOrIRIRef[Var][IRIRef]]['a']]
+\end{center}
+}
+}
+Diese Regeln wurden dann bei der Implementierung mit leeren Interfaces realisiert: Für jede Regel wurde ein Interface erstellt und entsprechend dieser Hierarchie von einander abgeleitet und dann in den Blatt-Knoten implementiert. So implementiert beipielsweise \texttt{Query2\_Var}  die Interfaces \texttt{Query2\_VarOrTerm} und \texttt{Query2\_VarOrIriRef}. Da nach Regel \texttt{Object ::= GraphNode} ein Objekt eines Triples ein GraphNode ist, wurde die entsprechende Methoden, die für das setzen des Objekts eines Tripels verantwortlich sind, mittels Type-Hinting\footnote{Die Festlegung des Typs eines Funktionsarguments ist in der schwach typisierten Skript-Sprache PHP ein gesondertes Feature. Die Typisierung von Variablen ist hingegen nicht möglich. Siehe \url{http://php.net/manual/en/language.oop5.typehinting.php}.} als \texttt{Query2\_\-Triple::\-setO\-(Query2\_\-Graph\-Node o)} so definiert, dass sichergestellt ist, dass dort nur Variablen, IRIs, BlankNodes und Literale übergeben werden können und nicht gegen die Regeln der Grammatik verstoßen werden kann. \\
+
+\subsection{PHP Interceptor Methoden}
+In PHP gibt es sogenannte Interceptor Methoden, die das Verhalten von Objekten bei gewissen sprach-internen Operationen definieren. Einige davon habe ich bei der Implementierung genutzt, um eine komfortable API zu erzeugen: 
+\begin{description}
+ \item [\_\_construct()] ist der Konstruktor einer Klasse. Er wurde hier, wie in anderen Sprachen auch, eingesetzt um Konfiguration nach der Instanzierung vorzunehmen.
+ \item [\_\_clone()] wird nach dem erzeugen einer echten Kopie eines Objekts auf dem Klon aufgerufen. Diese Methode wurde hier dazu genutzt um sogenanntes "`shallow-cloning"' zu verhindern, denn beim gewöhnlichen Klonen werden Referenzen auf andere Objekte einfach kopiert --- eine Änderung von Objekten, die im Original referenziert werden bedeutet also implizit auch eine Änderung an der Kopie. Um dieses Verhalten zu verhindern werden in der \_\_clone Methode auch alle referenzierten Objekte geklont und die Referenzen auf die Klone gerichtet.
+ \item [\_\_sleep()] wird vor dem Serialisieren aufgerufen. Bei der Implementierung hat sich das Problem ergeben, über Serialisierung hinweg die Identifizierung von Objekten zu ermöglichen. Die spracheigene Objektidentität geht bei der Serialisierung verloren (siehe dazu den nächsten Abschnitt).
+ \item [\_\_wakeup()] wird nach dem Serialisieren aufgerufen. (Siehe auch den nächsten Abschnitt)
+ \item [\_\_call()] wird aufgerufen, wenn eine nicht definierte Methode aufgerufen wird. Dies wird genutzt, damit Funktionsaufrufe, die auf der Query-Klasse nicht definiert sind, an das Objekt, das den WHERE-Teil repräsentiert, weitergeleitet werden und somit ein Query auch wie sein WHERE-Teil genutzt werden kann. Damit sind dann Aufrufe wie \texttt{\$query->addTriple()} möglich, die eigentlich nur über den Umweg \texttt{\$query\-->getWhere()->addTriple()} möglich sind.
+ \item [\_\_toString()] wird aufgerufen, wenn ein Cast nach String notwendig ist. Diese Methode wird als Alias für die toSparql-Methode implementiert und ermöglicht, dass ein \texttt{echo \$query} den Query ausgibt und nicht nur \texttt{object}.
+\end{description}
+
+\subsection{ID's}
+Wie gerade erwähnt geht die spracheigene Objektidentität bei der Serialisierung verloren. Man betrachte dazu folgendes Minimalbeispiel:
+\begin{lstlisting}[keywordstyle=]
+class B {}
+class A {
+    public $b;
+}
+$a = new A();
+$b = new B();
+$a->b = $b;
+$a_copy = unserialize(serialize($a));
+$b_copy = unserialize(serialize($b));
+var_dump($a_copy);
+var_dump($b_copy);
+\end{lstlisting}
+Es wird folgende Ausgabe erzeugt
+\begin{verbatim}
+object(A)[4]
+  public 'b' => 
+    object(B)[5]
+
+object(B)[6]
+\end{verbatim}
+Die Ausgabe zeigt, dass die Referenz auf \texttt{\$b} in \texttt{\$a} nach der Serialisierung nicht dieselbe Objektidentität hat wie \texttt{\$b} selbst nach einer anderen Serialisierung. Dies führt dazu, dass die Suche nach einem Objekt bzw. Gleichheitstest unerwartete Ergebnisse haben können. Um dies zu umgehen wurde eine eigene Identifikationsnummer eingeführt; jedes Objekt, das Querybestandteil ist, holt sich bei der Instanzierung eine ID über eine statische Methode der Query2-Klasse (\texttt{getNextID()}). Diese Methode erhöht dabei eine Klassenvariable, die als ID-Counter agiert. 
+
+\subsection{ElementHelper und ContainerHelper}
+\label{helper}
+Zwischen den Bestandteilen des Querys besteht häufig eine Enthaltensein-Relation. Um diesen Sachverhalt zu abstrahieren und entsprechende Operationen universell verfügbar zu machen, wurden die abstrakten Klassen \texttt{ElementHelper} und \texttt{Container\-Hel\-per} eingeführt. Der Container enthält Elemente. So agiert ein Tripel als Element eines GraphPattern, welches Container ist. Allerdings ist Container von Element abgeleitet und kann somit als solches in weiteren Containern enhalten sein. Das OptionalGraphPattern kann beispielsweise in einem anderen GroupGraphPattern enthalten sein.
+Folgendes Klassendiagramm veranschaulicht den Zusammenhang:\\
+\begin{center}
+\textsf{
+\umlDiagram[box=,border,sizeX=12cm,sizeY=10cm,ref=diagram]{%
+  \umlClass[reference=ElementHelper, refpoint=tm, pos=\umlTop{diagram}, posDelta={0,-2}]{ElementHelper}{%
+      \umlAttribute[visibility=\#, type=ContainerHelper{$[\,]$}]{parents}
+   }{%
+      	\umlMethod[visibility=+, returntype=]{addParent}{ContainerHelper parent}
+	\umlMethod[visibility=+, returntype=]{removeParent}{ContainerHelper parent}
+	\umlMethod[visibility=+, returntype=int]{getID}{ContainerHelper parent}
+	\umlMethod[visibility=+, returntype=]{remove}{}
+  }
+  \umlClass[reference=ContainerHelper, refpoint=bm, pos=\umlBottom{diagram}, posDelta={0,2}]{ContainerHelper}{%
+      \umlAttribute[visibility=\#, type=ElementHelper{$[\,]$}]{elements}
+   }{%
+	\umlMethod[visibility=+, returntype=]{addElement}{ElementHelper element}
+	\umlMethod[visibility=+, returntype=]{removeElement}{ElementHelper element}
+	\umlMethod[visibility=+, returntype=boolean]{contains}{ElementHelper element}
+	\umlMethod[visibility=+, returntype=boolean]{equals}{ContainerHelper other}
+  }
+  \umlSubclass{ContainerHelper}{ElementHelper}
+}
+}\\
+\end{center}
+Die beiden Klassen werden einerseits trivialerweise dazu genutzt, um Elemente eines Containers (über ein Array) zu verwalten, andererseits wird durch die Referenzierung der \texttt{parents} ermöglicht, neben Modifikationen des Elements auch die Kontrolle über enthaltende Container: Die \texttt{remove}-Methode der Element-Klasse teilt allen parents mit, dass diese das Element nicht weiter enthalten sollen.
+Des Weiteren wird über eine eigene \texttt{equals}-Methode der Container-Klasse die Mengen-Eigenschaft (hier die Beliebigkeit der Reihenfolge) realisiert: Zwei Container sind gleich, wenn sie sich gegenseitig \emph{enthalten}. Dies steht im Gegensatz zu den \texttt{equals}-Methoden von ElementHelper-Instanzen. Dort wird wird Gleichheit der String-Repräsentationen getestet.\\
+Benutzt wird das Container-Element-Konzept bei GraphPattern, denn es spielt für den SPARQL-Prozessor keine Rolle in welcher Reihenfolge Tripel etc im Pattern angeordnet sind. Auch bei Filter-Ausdrücken wie Konjunktion (\&\&), Addition usw. werden diese Klassen genutzt, denn diese Operationen sind kommutativ. Die Nutzung gestaltet sich durch eine Verberbung: Beispielsweise erbt die Klasse \texttt{Query2\_GroupGraphPattern} von \texttt{ContainerHelper}.\\
+Mit diesem Konzept wird also ermöglicht, über die syntaktische Äquivalenz hinaus einen gewissen Grad an semantischer Äquivalenz zu erreichen.\\
+
+\subsection{Benutzung / Beispiele}
+Im Folgenden will ich an einem einfachen Beispiel-Query die Ableitung in der SPARQL-Gramatik, die Erstellung eines äquivalenten Objekts und die Struktur des Objekts zeigen. Betrachten wir folgenden Query:\\
+\vfill
+\begin{lstlisting}
+SELECT ?var
+WHERE {
+   ?var ?p ?o
+}
+ORDER BY ?var
+LIMIT 10
+OFFSET 20
+\end{lstlisting}
+Dieser kann durch Regeln der Grammatik abgeleitet werden, die in Abbildung \ref{fig:parseTree} dargestellt ist.\\
+Das Erzeugen eines Objektes in PHP, das diesen Query repräsentiert, könnte entweder automatisch mit dem Parser erfolgen oder "`per Hand"' wie folgt:
+\begin{lstlisting}[caption={Beispiel Skript},label=code:example]
+// Objekte erzeugen
+$query = new Query2();
+$var =  new Query2_Var('var');
+
+// Query bauen
+$query->addProjectionVar($var);
+$query->setLimit(10);
+$query->setOffset(20);
+$query->getOrder()->add($var);
+$query->addTriple($var, new Query2_Var("p"), new Query2_Var("o"));
+\end{lstlisting}
+Die Repräsentation als Objekt sieht dann (per \texttt{var\_dump}) wie folgt aus:
+\footnotesize
+\begin{verbatim}
+object(Erfurt_Sparql_Query2)#156 (17) {
+  ["type:protected"]=> string(6) "SELECT"
+  ["limit:protected"]=> int(10)
+  ["offset:protected"]=> int(20)
+  ["distinctReducedMode:protected"]=> int(0)
+  ["order:protected"]=> object(Erfurt_Sparql_Query2_OrderClause)#155 (1) {
+    ["exps:protected"]=> array(1) {
+      [0]=> array(2) {
+        ["exp"]=> object(Erfurt_Sparql_Query2_Var)#150 (4) {
+          ["name:protected"]=> string(3) "var"
+          ["varLabelType:protected"]=> string(1) "?"
+          ["id:protected"]=> int(9)
+          ["parents:protected"]=> array(0) {}
+        }
+        ["dir"]=> string(3) "ASC"
+      }
+    }
+  }
+  ["projectionVars:protected"]=> array(1) {
+    [0]=> object(Erfurt_Sparql_Query2_Var)#150 (4) {
+      ["name:protected"]=> string(3) "var"
+      ["varLabelType:protected"]=> string(1) "?"
+      ["id:protected"]=> int(9)
+      ["parents:protected"]=> array(0) {
+      }
+    }
+  }
+  ["star:protected"]=> bool(false)
+  ["countStar:protected"]=> bool(false)
+  ["where:protected"]=> object(Erfurt_Sparql_Query2_GroupGraphPattern)#154 (3) {
+    ["elements:protected"]=> array(1) {
+      [0]=> object(Erfurt_Sparql_Query2_Triple)#149 (5) {
+        ["s:protected"]=> object(Erfurt_Sparql_Query2_Var)#150 (4) {
+          ["name:protected"]=> string(3) "var"
+          ["varLabelType:protected"]=> string(1) "?"
+          ["id:protected"]=> int(9)
+          ["parents:protected"]=> array(0) {}
+        }
+        ["p:protected"]=> object(Erfurt_Sparql_Query2_Var)#148 (4) {
+          ["name:protected"]=> string(1) "p"
+          ["varLabelType:protected"]=> string(1) "?"
+          ["id:protected"]=> int(10)
+          ["parents:protected"]=> array(0) {}
+        }
+        ["o:protected"]=> object(Erfurt_Sparql_Query2_Var)#147 (4) {
+          ["name:protected"]=> string(1) "o"
+          ["varLabelType:protected"]=> string(1) "?"
+          ["id:protected"]=> int(11)
+          ["parents:protected"]=> array(0) {}
+        }
+        ["id:protected"]=> int(12)
+        ["parents:protected"]=> array(1) {
+          [0]=> object(Erfurt_Sparql_Query2_GroupGraphPattern)#154 (3) *RECURSION*
+        }
+      }
+    }
+    ["id:protected"]=> int(7)
+    ["parents:protected"]=> array(0) {}
+  }
+  ["prefixes:protected"]=> array(0) {}
+  ["froms:protected"]=> array(0) {}
+  ["base:protected"]=> NULL
+  ["constructTemplate:protected"]=> NULL
+  ["idCounterSerialized:protected"]=> NULL
+  ["id:protected"]=> int(6)
+}
+\end{verbatim}
+\normalsize
+\begin{figure}[hp]
+  \centering
+    \epsfig{figure=files/parseTree.eps, angle=90,height=\textheight}
+    \caption{Ableitung des Querys aus den Regeln der Grammatik}
+    \label{fig:parseTree}
+\end{figure}
+\newpage
+

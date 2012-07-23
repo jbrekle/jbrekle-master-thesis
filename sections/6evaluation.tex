@@ -1,0 +1,50 @@
+\section{Evaluation}
+\label{sec:evaluation}
+\subsection{Resulting Data}
+
+The extraction has been conducted as a proof-of-concept on three major WLE:
+The English, French and German \wik.
+The datasets combined contain more than 100 million facts.
+The data is available as N-Triples dumps\footnote{\url{http://downloads.dbpedia.org/wiktionary}}, Linked Data\footnote{for example \url{http://wiktionary.dbpedia.org/resource/dog}}, via the \emph{Virtuoso Faceted Browser}\footnote{\url{http://wiktionary.dbpedia.org/fct}} or a SPARQL endpoint\footnote{\url{http://wiktionary.dbpedia.org/sparql}}.
+
+\begin{threeparttable} 
+\begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+\hline \emph{lang} & \emph{\#words} & \emph{\#triples} & \emph{\#resources} & \emph{t/w}\tnote{a}\hspace{0.15cm} & \emph{\#predicates} & \emph{\#senses} & \emph{\#wws}\tnote{b}\hspace{0.15cm} & \emph{s/wws} \\ 
+\hline \hline \textit{en} & 2,903,933 & 71,230,704 & 33,428,598 & 24.52 & 26 & 966673 & 708644 & 1.36 \\ 
+\hline \textit{fr} & 2,093,017 & 32,530,177 & 20,241,644 & 15.54 & 21 & 793,640 & 628,299 & 1.26 \\ 
+\hline \textit{de} & 204,045 & 6,677,192 & 3,448,052 & 32.72 & 23 & 170762 & 116622 & 1.46 \\ 
+\hline 
+\end{tabular}
+\begin{tablenotes}\footnotesize 
+\item[a] \textit{Triples per word.} A good measure of information density.
+\item[b] \textit{Words with senses.} The number of words, that have at least one sense  extracted.
+\end{tablenotes}
+\caption{Statistical comparison of three \wik extraction result datasets.}
+\end{threeparttable}
+
+The statistics show, that the extraction produces a vast amount of data with broad coverage, thus resulting in the largest lexical linked data resource. 
+There might be partially data quality issues with regard to missing information (for example the number of \textit{words with senses} seems to be relatively low intuitively), but detailed quality analysis was out-of-scope for this article as we focused on describing the procedure. 
+
+\subsection{Lessons Learned}
+\paragraph{Making unstructured sources machine-readable creates feedback loops}
+
+Although this is not yet proven by empirical data, the argument that extracting structured data from an open data source and making it freely available in turn encourages users of the extracted data to contribute to the source, seems reasonable.
+The clear incentive is to \textit{get the data out again}.
+This increase in participation besides improving the source, also illustrates the advantages of machine readable data to common Wiktionarians.
+Such a positive effect from DBpedia supported the current \textit{Wikidata}\footnote{\url{http://meta.wikimedia.org/wiki/Wikidata}} project.
+
+\subsection{Suggested changes to Wiktionary}
+Although it's hard to persuade the community of far-reaching changes, we want to conclude how \wik can increase its data quality and enable better extraction.
+\begin{compactitem}
+	\item \textbf{Homogenize Entry Layout across all WLE's.}
+	\item \textbf{Use anchors to markup senses:}
+		This implies creating URIs for senses.
+		These can then be used to be more specific when referencing a \textit{word} from another article. 
+		This would greatly benefit the evaluation of automatic anchoring approaches like in \cite{meyer_2011b}.
+	\item \textbf{Word forms:}
+		The notion of word forms (e.g. declensions or conjugations) is not consistent across articles.
+		They are hard to extract and often not given.
+\end{compactitem}
+
+
+\newpage

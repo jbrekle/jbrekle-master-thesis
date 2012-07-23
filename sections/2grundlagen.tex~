@@ -1,0 +1,161 @@
+\section{Grund\-lagen}
+\label{sec:grundlagen}
+
+\begin{figure}
+  \centering
+    \includegraphics[width=0.5\textwidth]{files/layerCake.eps}
+  \caption{Semantic Web Technologien}
+  \label{fig:layercake}
+\end{figure}
+
+\subsection{Semantic Web}
+Das \textit{World Wide Web}, das Anfang der 90er Jahre des letzten Jahrhunderts aufkam, revolutionierte die Art, wie wir Menschen kommunizieren: Lokale Netze und Computer wurden in einem globalen Netz miteinander verknüpft. Das Semantic Web (SW) soll nun die Nutzbarkeit der verfügbaren Informationen für informationstechnische Verarbeitung revolutionieren. SW ist dabei ein Oberbegriff für eine Vielzahl von neuen komplementären Technologien, welche in Abbildung \ref{fig:layercake} dargestellt sind. Zu sehen ist ein hierarchisches Modell, dessen Komponente "`Query: SPARQL"' im Mittelpunkt dieser Arbeit steht.\\
+Initiert wurde die SW-Bewegung im Jahr 2001 von Tim Berners-Lee. Dieser definierte es als 
+\begin{quote}
+"`an extension of the current web in which information is given well-defined
+meaning, better enabling computers and people to work in cooperation"'.\cite{berners}\end{quote}
+Dies geschieht durch verschiedene Ansätze: zunächst durch das Anreichern von (u. U. semi-struk\-tur\-iert\-en) Dokumenten durch Metainformationen schon beim Erstellungsprozess (wenn zum Beispiel ein Name in einem Dokument vorkommt, kann er in einer Art und Weise markiert werden, die allen verarbeitenden Systemen durch ein gemeinsames Vokabular als "`Personen-Markierung"' bekannt ist). Für diese Annotation wird zum Beispiel RDFa\footnote{\url{http://www.w3.org/TR/xhtml-rdfa-primer/}} genutzt. Des Weiteren wird Wissen in Form von Ontologien aufbereitet, die keine unstrukturierten Informationen enthalten, sondern lediglich \emph{wahre Aussagen} in einem formellen Format. Die Nutzung eines gemeinsamen dokumentierten Vokabulars (also die Einigung auf eine Sprache) sowie die Entwicklung offener Standards soll die Verständigung garantieren. Die Einbeziehung bereits existierender Webstandards (wie URIs oder das HTTP-Protokoll) soll eine schnelle Verbreitung ermöglichen. Dadurch soll Wissen für maschinelle Verarbeitung nutzbar gemacht werden\footnote{Allerdings wird dabei ausdrücklich nicht versucht, mithilfe künstlicher Intelligenz oder heuristischer Verfahren die Semantik für die Maschine verständlich zu machen, sondern lediglich sinnvoll repräsentierbar und damit verarbeitbar.} (vgl. \cite{hitzler}).\\
+Die zentrale Technologie zur Datenrepräsentation ist RDF\footnote{\url{http://www.w3.org/RDF/}}. RDF/XML\footnote{\url{http://www.w3.org/TR/rdf-syntax-grammar/}} bzw. N3\footnote{\url{www.w3.org/DesignIssues/Notation3}} sind konkrete Kodierungen von RDF, auf welche hier nicht näher eingegangen wird. SPARQL dient als Anfragesprache für RDF-Graphen (siehe Abschnitt \ref{sec:sparql}). 
+
+\subsection{RDF}
+RDF steht für Resource Description Framework. Es ist ein Datenmodell zur Beschreibung von Web-Ressourcen (nicht nur Webseiten usw., denn jedes Ding der Welt kann über eine URI identifiziert werden), welche über eine URI\footnote{\url{http://tools.ietf.org/html/rfc3986}} identifiziert werden. Eine Ressource ist dabei eine Entität, über die Aussagen der Form \textit{"`Subjekt Prädikat Objekt"'} --- ähnlich einem natürlichsprachlichen Satz --- getroffen werden können.\\
+So kodiert zum Beispiel das Tripel \\
+\begin{center}\begin{varwidth}{\textwidth}\begin{singlespace}
+\begin{verbatim}
+<http://example.com/Alice> rdf:type foaf:Person
+\end{verbatim}
+\end{singlespace}\end{varwidth}\end{center}
+die Aussage ``Alice ist eine Person''. Dabei ist Folgendes zu betrachten: Auch Subjekt, Prädikat und Objekt sind URIs, werden aber optional mit Prefixen abgekürzt (deren Definition hier ausgelassen wurde); außerdem wird das FOAF Vokabular\footnote{\url{http://xmlns.com/foaf/0.1/}} genutzt. Ein Tripel wird im Kontext der Graphentheorie interpretiert: Subjekt und Objekt sind Knoten --- das Prädikat ist der ``Typ'' der Kante.\\
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.5\textwidth]{files/triple-graph.png.eps}
+  \caption{Das Tripel als Graph}
+  \label{fig:triple-graph}
+\end{figure}
+\\
+Es entsteht (bei mehreren Tripeln) ein gerichteter Graph, der eine Ontologie repräsentiert. Graphen sind als abstraktes Konzept viel einfacher und verlässlicher zugänglich für Algorithmen als natürliche Sprache. Außerdem lassen sich implizite Informationen (zum Beispiel transitive Relationen oder geerbte Eigenschaften) ableiten oder Widersprüche finden\footnote{Access Control, Logic and Proof: \url{http://www.w3.org/2000/01/sw/\#access}}.\\
+Die Tatsache, dass hier kein hierarchisches Baummodell, sondern ein Graph zur Repräsentation gewählt wird, lässt sich auch damit begründen, dass Aussagen (bezüglich Beziehungen zweier Resourcen zueinander) oft nicht eindeutig einer von beiden zugeordnet werden können. Des Weiteren entspricht ein flaches Netz eher der dezentralen Struktur des Webs: Die Informationen sind verteilt und beim Zusammenführen zweier Informationsquellen stellt sich --- zumindest auf diesem Niveau --- kein Problem von Schema-Matching ein, denn das Schema ist bei allen Quellen gleichermaßen frei (vgl. \cite{hitzler}). Object-Matching soll von Beginn an vermieden werden, indem (wie oben erwähnt) ein gemeinsames Vokabular und somit überall eine eineindeutige URI für alle Objekte (Ressourcen) genutzt wird. In der Praxis besteht dieses Problem natürlich weiterhin.\\
+Das Objekt eines Tripels kann in RDF auch ein Literal\footnote{\url{http://www.w3.org/TR/rdf-concepts/\#section-Graph-Literal}} sein. Literale sind direkte \emph{Werte}, über die keine weiteren Aussagen getroffen werden --- also zum Beispiel Zahlen oder Zeichenketten.\\ 
+Man unterscheidet zwei Arten von Literalen:
+\textit{plain literals} (mit optionalem \textit{language Tag}) und \textit{typed literals}, die einen Datentyp haben, der mit einer URI angegeben wird. Im folgenden Beispiel wird das Literal mit einem selbst definierten Datentyp typisiert:
+
+\vspace{0.2ex}
+
+\begin{center}
+\begin{varwidth}{\textwidth}
+\begin{verbatim}
+ex:Alice foaf:birthday "22.09.1986"^^ex:germanDate
+\end{verbatim}
+\end{varwidth}
+\end{center}
+
+\subsection{SPARQL}
+\label{sec:sparql}
+SPARQL\footnote{\url{http://www.w3.org/TR/rdf-sparql-query/} \\
+bzw. \url{http://www.dajobe.org/2005/04-sparql/SPARQLreference-1.8-us.pdf}} steht für \emph{SPARQL Protocol and RDF Query Language} und ist eine Anfragesprache für RDF-Graphen sowie ein Protokoll für deren Nutzung über einen Webservice. Mit ihr können Literale, Ressourcen oder ganze Teilgraphen extrahiert werden. Sie hat sich aus anderen Sprachen, wie SquishQL\footnote{siehe \cite{squishQL}}, RDQL\footnote{\url{http://www.w3.org/Submission/RDQL/}}, RQL\footnote{\url{http://139.91.183.30:9090/RDF/RQL/}} oder SeRQL\footnote{siehe \cite{serql}} (vgl. \cite{compQL}), entwickelt und stellt nun den offiziellen Standard des W3C dar.\\
+Eine kurze Übersicht\footnote{Hier werden lediglich für das weitere Verständnis zentrale Ideen erläutert --- für eine umfassende und detaillierte Beschreibung ist der Standard zu konsultieren.} über die Features der Sprache werde ich im Folgenden geben.\\
+\vspace{0.1cm}\\
+Es gibt 4 Typen von SPARQL Querys:
+\begin{itemize}
+	\item{SELECT um Daten, die auf ein angegebenes Muster passen (\emph{matchen}), zu extrahieren}
+	\item{ASK um zu prüfen, \emph{ob} ein Muster im Graph existiert}
+	\item{CONSTRUCT gibt einen Graph zurück, der unter Umständen durch ein Such-Muster erzeugt wurde oder explizit angegeben wird}
+	\item{DESCRIBE liefert Informationen über gematchte Ressourcen (ist nicht standardisiert, abhängig von der Konfiguration der Datenbank, oft beschreibende Eigenschaften, wenn diese eingetragen wurden)}
+\end{itemize}
+Eine SPARQL-Anfrage (Query) lässt sich in folgende Teile aufgliedern:
+\begin{itemize}
+	\item{Prolog\\um Prefixe und Base-URI zu deklarieren. Relative URIs, die innerhalb des Querys vorkommen, werden auf die Base-URI bezogen. Prefixe sind Abkürzungen für häufig verwendete URIs} 
+	\item{Projektionsanweisung\\ähnlich SQL: Variablen (bei SQL Spalten), welche im Ergebnis sichtbar sein sollen oder "`*"' für alle verwendeten Variablen}
+	\item{Ergebnis-Modifikatoren
+	\begin{itemize}
+		\item{DISTINCT zur Duplikatentfernung} 
+		\item{REDUCED "`kann"' Duplikate entfernen, wenn dies für die Laufzeit sinnvoll ist.}
+		\item{ORDER BY sorgt für Sortierung nach einem Ausdruck (oft einer Variablen)}
+		\item{LIMIT und OFFSET um einen gewisses Intervall von Lösungen auszuwählen}
+	\end{itemize}
+	}
+	\item{GraphPattern (und Construct Pattern bei CONSTRUCT Querys)\\
+	geben einen Teilgraphen an und bestehen aus Tripeln oder weiteren GraphPattern, wobei allerdings Variablen genutzt werden können --- daher der Name Pattern. Nach diesem Muster wird im Graph gesucht. Mögliche Belegungen für Variablen sind das Ergebnis.
+	Es gibt folgende GraphPattern-Typen:
+	\begin{itemize}
+		\item{GRAPH: ein elementares Pattern, bestehend aus einer beliebigen Folge von Tripeln, weiteren GraphPattern und Filtern. Ein Tripel ist eine Aussage aus dem angefragten RDF-Graph. Zwei aufeinanderfolgende Tripel werden durch einen Punkt getrennt und bilden eine Konjenktion dieser Aussagen. Die Komponenten Subjekt, Prädikat und Objekt können durch Variablen ersetzt werden.}
+		\item{OPTIONAL: ein GroupGraphPattern, das nicht notwendig ist. Das heißt: Wenn dieses Teilmuster nicht gematcht werden kann, beinflusst dies nicht das matching des gesamten Musters --- allerdings sind enthaltene Variablen dann natürlich ungebunden.} 
+		\item{UNION: verknüpft mehrere GraphPattern disjunktiv. So können Alternativen ausgedrückt werden.}
+	\end{itemize}
+	\item{Filter sind logische Ausdrücke, die für jede mögliche Lösung\footnote{Eine Lösung ist eine Kombination von Variablen-Bindings, für die das Pattern \emph{matcht}.} evaluiert werden und (wenn sie zu \emph{false} ausgewertet werden) Ergebnisse löschen können. Für die Ausdrücke steht eine logische, numerische und relative Algebra zur Verfügung, die über eingebaute und entfernte Funktionsaufrufe erweitert wurde.
+	}
+	}
+\end{itemize}
+Ein Beispiel Query:
+\begin{lstlisting}[label=ex:query,numbers=left, numberstyle=\tiny, numbersep=5pt]
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT ?subj, ?name
+WHERE {
+    ?subj rdf:type foaf:Person .
+    ?subj foaf:age ?age
+    OPTIONAL { ?subj foaf:name ?name }
+    FILTER( REGEX(?age > 23) )
+}
+\end{lstlisting}
+Diese Anfrage findet alle Personen, die älter als 23 sind, und, wenn möglich, deren Namen. Genauer wird folgendes ausgedrückt: Zuerst wird ein Prefix deklariert, das das RDF und FOAF Vokabular abkürzt. Im WHERE-Teil wird ein GraphPattern angegeben, mit dem die Variable \texttt{?subj} mit allen Ressourcen belegt wird, für die die Aussage gilt, dass sie vom Typ \texttt{Person} aus dem FOAF-Vokabular sind. In der siebenten Zeile wird optional der zugehörige Name an die Variable \texttt{?name} gebunden. In der sechsten und achten Zeile wird abschließend noch eine Einschränkung auf das Alter deklariert, indem zunächst der Wert an eine Variable gebunden wird und diese dann mithilfe eines Filter-Ausdrucks eingeschränkt. Bei der Auswertung dieser Anfrage wird der sogenannte Triple-Store (also eine auf RDF-Daten spezialisierte Datenbank) versuchen, dieses Muster im angefragten Graph zu finden und alle möglichen Variablen-Belegungen als Ergebnis zurückliefern --- also beispielsweise eine Tabelle oder XML mittels eines speziellen Result-Set-Formats\footnote{\url{http://www.w3.org/TR/rdf-sparql-XMLres/}}.\\
+\\
+
+\subsection{Related Work}\label{relatedWork}
+%\subsection{Comparison of Wiktionary extraction approaches}
+In the last five years, the importance of \wik as a lexical-semantic resource has been examined by multiple studies.
+Meyer et al. (\cite{Meyer_2010a,Meyer_2010b}) presented an impressive overview on the importance and richness of \wik. 
+In \cite{Zesch_2008_jwktl} the authors presented the \emph{JWKTL} framework to access \wik dumps via a Java API.
+In \cite{meyer_2011b} this JWKTL framework was used to construct an upper ontology called \emph{OntoWiktionary}.
+The framework is reused within the \emph{UBY project}~\cite{Gurevych_2012}, an effort to integrate multiple lexical resources (besides \wik also \emph{WordNet}, \emph{GermaNet}, \emph{OmegaWiki}, \emph{FrameNet}, \emph{VerbNet} and \emph{Wikipedia}).
+The resulting dataset is modelled according to the \emph{LMF ISO standard}\cite{iso_24613-2008}.
+\cite{Moerth_2011} and \cite{Declerck-2012} discussed the use of \wik to canonicalize annotations on cultural heritage texts (namely the Thompson Motif-index). 
+Zesch et. al. also showed, that \wik is suitable for calculating semantic relatedness and synonym detection; and it outperforms classic approaches~\cite{Zesch_2008,Weale_2009}. 
+Furthermore, other NLP tasks such as sentiment analysis have been conducted with the help of \wik \cite{Chesley_2006}.\\
+Several questions arise, when evaluating the above approaches:
+Why are there not more NLP tools reusing the free \wik data?
+Why are there no web mashups of the data\footnote{For example in an online dictionary from \url{http://en.wikipedia.org/wiki/List_of_online_dictionaries}}?
+Why has \wik not become the central linking hub of lexical-semantic resources, yet?\\
+From our point of view, the answer lies in the fact, that although the above papers presented various desirable properties and many use cases, they did not solve the underlying knowledge extraction and data integration task sufficiently in terms of coverage, precision and flexibility.
+Each of the approaches presented in Table \ref{tab:sota} relies on tools to extract machine-readable data in the first place.
+In our opinion these tools should  be seen independent from their respective usage and it is not our intention to comment on the scientific projects built upon them in any way here. 
+We will show the state of the art and which open questions they raise. 
+
+\begin{table}[tb]
+	\begin{tabular}{l|l|l|l|l|l|l}
+        \centering
+        % heading
+		\textbf{name} & \textbf{active} & \textbf{available} & \textbf{RDF} & \textbf{\#triples} & \textbf{ld} & \textbf{languages}\\ \hline 
+        % rows
+JWKTL& \tickYes & dumps & \tickNo & - & \tickNo & en, de\\ 
+wikokit & \tickYes & source + dumps &  \tickYes & n/a &\tickNo & en, ru\\ 
+texai& \tickNo & dumps & \tickYes & $\sim$ 2.7 million & \tickNo & en\\ 
+%\footnote{See \url{http://monnetproject.deri.ie/lemonsource/} and \cite{McCrae_2012}. The Wiktionary extraction tool is just a little sub project.} 
+lemon scraper & \tickYes & dumps & \tickYes &$\sim$16k per lang& \tickNo & 6\\ 
+blexisma& \tickNo & source & \tickNo & - & \tickNo & en\\ 
+WISIGOTH & \tickNo & dumps & \tickNo & - & \tickNo & en, fr\\ 
+lexvo.org& \tickYes & dumps & \tickYes & $\sim$353k & \tickYes & en\\ 
+	\end{tabular}
+    \caption{Comparison of existing Wiktionary approaches (ld = linked data hosting). None of the above include any crowd-sourcing approaches for data extraction. The wikokit dump is not in RDF.}
+		\label{tab:sota}
+\end{table}
+\textit{JWKTL} is used as data backend of \textit{OntoWiktionary} as well as  UBY\footnote{\url{http://www.ukp.tu-darmstadt.de/data/lexical-resources/uby/}, \url{http://www.ukp.tu-darmstadt.de/data/lexical-resources/uby/}} and features a modular architecture, which allows the easy addition of new extractors (for example \textit{wikokit}~\cite{wikokit} is incorporated).
+The Java binaries and the data dumps in LMF are publicly available.
+Among other things, the dump also contains a mapping from concepts to lexicalizations as well as properties for part of speech, definitions, synonyms and subsumption relations. 
+The available languages are English, German (both natively) and Russian (through \textit{wikokit}).
+According to our judgement, \textit{JWKTL} can be considered the most mature approach regarding software architecture and coverage and is the current state of the art. 
+\textit{Texai}\footnote{\url{http://sourceforge.net/projects/texai/}} and \textit{Blexisma}\footnote{\url{http://blexisma.ligforge.imag.fr/index.html}} are also Java based APIs, but are not maintained anymore and were most probably made obsolete by changes to the \wik layout since 2009.
+There is no documentation available regarding scope or intended granularity. 
+A very fine grained extraction was conducted using WISIGOTH~\cite{sajous_2010}, but unfortunately there are no sources available and the project is unmaintained since 2010. 
+Two newer approaches are the \textit{lexvo.org} service and the algorithm presented in \cite{McCrae_2012}.
+The \textit{lexvo.org} service offers a linked data representation of \wik with a limited granularity, namely it does not disambiguate on sense level. 
+The source code is not available and only the English \wik is parsed.
+As part of the Monnet project\footnote{See \url{http://www.monnet-project.eu/}. A list of the adopted languages and dump files can be found at \url{http://monnetproject.deri.ie/lemonsource/Special:PublicLexica}}, McCrae et al.~\cite{McCrae_2012} presented a simple scraper to transform \wik to the \lemon RDF model~ \cite{lemon-eswc}.
+The algorithm (like many others) makes assumptions about the used page schema and omits details about solving common difficulties (as shown in the next section). 
+At the point of writing, the sources are not available, but they are expected to be published in the future. 
+Although this approach appears to be the state of the art regarding RDF modelling and linking, the described algorithm will \textit{not scale to the community-driven heterogeneity} as to be defined in Section \ref{problem}.
+All in all, there exist various tools that implement extraction approaches at various levels of granularity or output format. 
+In the next section, we will show several challenges that in our opinion are insufficiently tackled by the presented approaches. 
+Note that this claim is not meant to diminish the contribution of the other approaches as they were mostly created for solving a single research challenge instead of aiming to establish \wik as a stable point of reference in computational linguistics using linked data.
+\sub
+\newpage

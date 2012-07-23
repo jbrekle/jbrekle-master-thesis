@@ -1,0 +1,63 @@
+\section{Introduction}
+
+\subsection{Motivation}
+
+The topic of this thesis will be the flexible extraction of semantically rich data from \wik.
+The resulting data set is a lexical resource for computer linguistics.
+But however the focus is not on linguistics but on data integration: information extraction from wikis can be conducted in two ways --- in perspective of 1) text mining, where the wiki is seen as a corpus or 2) interpreting the wiki as a collection of semi-structured documents.
+The latter is the way we will see it and how DBpedia was designed as it enables the definition of \textit{extractors}, that interpret wiki pages.
+Also opposed to text mining, DBpedia allows to tailor the data step by step closer to the intended semantic of the wiki text.
+Additionally weak signals (facts that don't have much support, that are only stated once) can be taken account of.
+DBpedia creates an ontology from Wikipedia, that is roughly said, a database of world knowledge.
+Opposed to Wikipedia, the DBpedia knowledge base can be queried like a database, comibining information from multiple articles.
+To conduct a analogous transformation on \wik, we analysed the major differences and found that \wik is on one hand richer in structured informationbut also  this structure varies widely.
+So we propose an declarative framework, built on top of DBpedia, to convert \wik into a linguistic ontology about languages, about the use of words, about their properties and relations.
+We will show which unique properties such a knowledge base has and what possible applications are.
+The declarative extraction rules can be maintained by a community of domain experts, that don't necessarily need programming skills.
+As will be shown, this is crucial for the approach to succeed on a long term.
+DBpedia has proven such a approach to be working and scaling.
+The goal of DBpedia is to provide a tool for unsupervised but highly configurable ontology construction.
+By using and extending DBpedia \wik can be automatically transformed into a machine readable dictionary --- with substantial quantity and quality.
+
+\subsection{Problem}
+\label{intro}
+%Why is it important
+The exploitation of community-built lexical resources has been discussed repeatedly.
+\wik is one of the biggest collaboratively created lexical-semantic and linguistic resources available, written in 171 languages (of which approximately 147 can be considered active\footnote{\url{http://s23.org/wikistats/wiktionaries_html.php}}), containing information about hundreds of spoken and even ancient languages. 
+For example, the English \wik contains nearly 3 million words\footnote{See \url{http://en.wiktionary.org/wiki/semantic} for a simple example page}.
+A \wik page provides for a lexical word a hierarchical disambiguation to its language, part of speech, sometimes etymologies and most prominently senses.
+Within this tree numerous kinds of linguistic properties are given, including synonyms, hyponyms, hyperonyms, example sentences, links to Wikipedia and many more.
+\cite{meyer_2011b} gave a comprehensive overview on why this dataset is so promising and how the extracted data can be automatically enriched and consolidated. 
+Aside from building an upper-level ontology, one can use the data to improve NLP solutions, using it as comprehensive background knowledge.
+The noise should be lower when compared to other automatic generated text copora (e.g. by web crawling) as all information in \wik is entered and curated by humans.
+Opposed to expert-built resources, the openness attracts a huge number of editors and thus enables a faster adaption to changes within the language.
+
+%What's the problem?
+The fast changing nature together with the fragmentation of the project into  \wik language editions (\textit{WLE}) with independent layout rules (ELE) poses the biggest problem to the automated transformation into a structured knowledge base.
+We identified this as a serious problem:
+Although the value of \wik is known and usage scenarios are obvious, only some rudimentary tools exist to extract data from it.
+Either they focus on a specific subset of the data or they only cover one or two WLE.
+The development of a flexible and powerful tool is challenging to be accommodated in a mature software architecture and has been neglected in the past.
+Existing tools can be seen as adapters to single WLE --- they are hard to maintain and there are too many languages, that constantly change. 
+Each change in the \wik layout requires a programmer to refactor complex code. 
+The last years showed, that only a fraction of the available data is extracted and there is no comprehensive RDF dataset available yet. 
+The key question is: 
+Can the lessons learned by the successful DBpedia project be applied to \wik, although it is fundamentally different from Wikipedia? 
+The critical difference is that only word forms are formatted in infobox-like structures (e.g. tables).
+Most information is formatted covering the complete page with custom headings and often lists. 
+Even the infoboxes itself are not easily extractable by default DBpedia mechanisms, because in contrast to DBpedias \textit{one entity per page} paradigm, \wik pages contain information about \textit{several} entities forming a complex graph, i.e. the pages describe the lexical word, which occurs in several languages with different senses per part of speech and most properties are defined \textit{in context} of such child entities.
+%A page describes a word, but for example senses are distinct entities, and most properties are defined \textit{in context} of such child entities.
+%How do we solve it?
+Opposed to the currently employed classic and straight-forward approach (implementing software adapters for scraping), we propose a declarative mediator/wrapper pattern. 
+The aim is to enable non-programmers (the community of adopters and domain experts) to tailor and maintain the WLE wrappers themselves. 
+We created a simple XML dialect to encode the ``entry layout explained'' (ELE) guidelines and declare triple patterns, that define how the resulting RDF should be built. 
+This configuration is interpreted and run against \wik dumps. 
+The resulting dataset is open in every aspect and hosted as linked data\footnote{\url{http://wiktionary.dbpedia.org/}}. 
+Furthermore the presented approach can be extended easily to interpret (or \textit{triplify}) other MediaWiki installations or even general document collections, if they follow a global layout.
+
+
+In section~\ref{sec:basics} I will introduce the domain of information extraction from wikis and RDF and related concepts, that form the basis of this thesis.\\
+In section~\ref{sec:requirements} and \ref{sec:specification} I give an overview on  requirements of the developed software, that arise in context of the DBpedia project and explain resulting specifications.\\
+In the following section~\ref{sec:implementation} I will present some implementation details, that turned out to be essential for the success of of the approach. Finally in section~\ref{sec:evaluation} the created dataset is evaluated and compared with existing datasets. The thesis is written in a top-down manner, so when ever questions seem to remain open, continue reading, as details will follow later.
+
+\newpage

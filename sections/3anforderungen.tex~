@@ -1,0 +1,7 @@
+\section{Anforderungen}
+\label{sec:anforderungen}
+Als Anforderung wird eine Bedingung oder Eigenschaft bezeichnet, die ein System benötigt, um ein Problem zu lösen oder um einem Standard zu genügen (vgl. IEEE Std 610.12-1990). Drei Arten von Anforderungen sind funktionale Anforderungen, Qualitätsanforderungen und Rahmenbedingungen (vgl. \cite{young}). In diesem Kapitel werde ich zunächst auf bestehende und neu entstandene Anwendungsfälle eingehen und die zugrundeliegenden Anforderungen aufzeigen. Danach möchte ich im Abschnitt \ref{sec:req} einige Qualitätsanforderungen erläutern.
+
+\subsection{Anwendungsfälle}
+
+\newpage

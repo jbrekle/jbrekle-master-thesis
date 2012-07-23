@@ -1,0 +1,222 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage{palatino}
+\usepackage{url}
+%\usepackage{xcolor}
+%\usepackage[colorlinks=true, linkcolor=black, linkbordercolor=blue, urlbordercolor=blue, urlcolor=black, pdfborderstyle={/S/U/W .5}]{hyperref}
+%\usepackage{breakurl}
+\usepackage{graphicx}
+%\usepackage{multirow}
+\usepackage{fancyhdr}
+%\usepackage{comment}
+%\usepackage{printlen} % Print lengths using specified units. 
+%\usepackage{hyperref}
+%\usepackage{booktabs}
+\usepackage[utf8]{inputenc} % Umlaute üöä auch normal benutzen und nicht maskieren
+%\usepackage[rightcaption]{sidecap}  % caption beside figure
+\usepackage{amsmath, amssymb}
+\usepackage{listings}
+%\usepackage{subfigure}
+%\usepackage{setspace}
+\usepackage{threeparttable}
+%\usepackage{todonotes}
+\usepackage{paralist}
+%\usepackage{siunitx}
+\usepackage{amsfonts}
+\newcommand{\tickYes}{\checkmark}
+\usepackage{pifont}
+\newcommand{\tickNo}{\hspace{1pt}\ding{55}}
+\usepackage{xspace}
+\usepackage{dirtree}
+
+\usepackage{color}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+
+% custom commands
+\newcommand{\wik}{\textit{Wiktionary}\xspace}
+% http://www.ctan.org/tex-archive/fonts/ps-type1/cm-super/
+\usepackage[T1]{fontenc} % use high quality fonts, please install cm-super
+\newcommand{\lemon}{\emph{lemon} }
+\newcommand{\lemonnospace}{\emph{lemon}}
+\newcommand{\footnoteUrl}[1]{\footnote{\url{#1}}}
+
+%%%% LISTINGS
+\usepackage{listings} % Typeset source code listings using LaTeX.
+% listing styles
+\lstset{
+    numberbychapter=false,
+    numbers=left,
+    numberstyle=\tiny,
+    basicstyle=\ttfamily\fontsize{8}{8}\selectfont,
+%    tabsize=2,
+%    framexleftmargin=2pt,
+    captionpos=b,
+    frame=single,
+    breaklines=true,
+    columns=fullflexible,
+    showstringspaces=false,
+    commentstyle=\color{gray},
+    literate={ö}{{\"o}}1
+               {ä}{{\"a}}1
+               {ü}{{\"u}}1
+}
+%\lstdefinestyle{rdf}{numberblanklines=true, morekeywords={}}
+\lstdefinestyle{sparql}{numberblanklines=true, morekeywords={SELECT, WHERE, FILTER, GROUP BY, IN, AS, LIMIT, OFFSET, PREFIX, OPTIONAL, UNION}}
+\lstdefinestyle{N3}{numberblanklines=true, morekeywords={foaf, prefix, rdf, skos, rdfs}}
+%\usepackage{textcomp}
+\lstdefinestyle{XML}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+%%%% todo
+% \newcommand{\todo}[1]{\textbf{[ToDo: #1]}}
+% draws PDF notes instead of in-text todos
+%\usepackage{pdfmarginpar}\newcommand{\todo}[1]{\pdfmarginpar[Note]{ToDo: #1}}
+%\newcommand{\todo}[1]{}
+
+%\hypersetup{colorlinks=false}
+
+
+\newcommand{\NAME}{Leveraging the Crowdsourcing of Lexical Resources for Bootstrapping a Linguistic Data Cloud}
+\newcommand{\TITLE}{\NAME}
+\newcommand{\TITLER}{\NAME}
+\newcommand{\KEYWORDS}{Semantic Web, Natural Language Processing, Information Extraction}
+
+\pdfinfo{
+	/Title (\TITLE)
+	/Creator (TeX)
+	/Keywords (\KEYWORDS)
+	/Producer (pdfTeX and Document $Revision: 5900 $)
+	/Author (Jonas Brekle)
+	%/CreationDate (D:19980212201000)
+	%/ModDate (D:19980212201000)
+	/Subject (\NAME)
+}
+
+\graphicspath{{images/}} % include-pfad für Grafiken
+\DeclareGraphicsExtensions{.pdf,.png}
+
+
+% \renewcommand{\vec}[1]{\overrightarrow{#1}}
+
+\fancyhf{}
+\pagestyle{fancy}
+% Seitenzahl bei geraden/linken Seiten nach links/aussen
+\fancyhead[R]{\thepage}
+
+\fancyhead[L]{\leftmark}% Kapitel/Abschnitt
+
+
+
+\begin{document}
+
+\begin{titlepage}
+\vspace{2 cm}
+\thispagestyle{empty}
+\begin{center}
+\Large{
+Universität Leipzig\\
+Fakultät für Mathematik und Informatik\\
+Institut für Informatik\\
+}
+\vspace{3 cm}
+\textbf{
+	\Large{
+	\TITLE
+	}
+}
+\vspace{2 cm}
+\textbf{
+Masterarbeit\\
+im Studiengang Master Informatik
+}
+\end{center}
+\vspace{6 cm}
+
+\begin{flushleft}
+\begin{tabular}{lll}
+& & \\
+\textbf{eingereicht von:} & & Jonas Brekle\\
+& & \\
+& & \\
+\textbf{eingereicht am:} & & 1. August 2012\\
+& & \\
+& & \\
+\textbf{betreuender Professor:} & & Prof. Dr. Ing. habil. Klaus-Peter Fähnrich\\
+& & \\
+& & \\
+\textbf{Betreuer:} & & Dipl. Inf. Sebastian Hellmann
+\end{tabular}
+\end{flushleft}
+\end{titlepage}
+
+\thispagestyle{empty}
+\begin{abstract}
+We present a declarative approach implemented in a comprehensive open-source framework (based on \textit{\mbox{DBpedia}}) to extract lexical-semantic resources (an ontology about language use) from \wik. 
+The data currently includes language, part of speech, senses, definitions, synonyms, taxonomies (hyponyms, hyperonyms, synonyms, antonyms) and translations for each lexical word.
+Main focus is on flexibility to the loose schema and configurability towards differing language-editions of \wik.
+This is achieved by a declarative mediator/wrapper approach.
+The goal is to allow the addition of languages just by configuration without the need of programming, thus enabling the swift and resource-conserving adaption of wrappers by domain experts. 
+%TODO maybe add crowd sourcing and DBpedia againcd 
+%to new usage scenarios by crowd-sourcing ( proven working by DBpedia \cite{dbpedia_jws_09} and the \textit{Mappings Wiki}\footnote{a community interested in curating the DBpedia dataset collaboratively maintains the core of the extraction configuration --- the infobox label mappings --- at \url{http://mappings.dbpedia.org/}}).
+The extracted data is as fine granular as the source data in \wik and additionally follows the \textit{lemon} model. 
+It enables use cases like disambiguation or machine translation. 
+By offering a linked data service, we hope to extend DBpedia's central role in the LOD infrastructure to the world of Open Linguistics.
+\end{abstract}
+
+\vfill
+Ich danke Sebastian Hellmann für die gute Betreuung und ein professionelles Arbeitsumfeld sowie Theresa für ihre Unterstützung. Ohne sie wäre diese Arbeit so nicht möglich gewesen. 
+\pagebreak
+
+\pagenumbering{Roman}
+\setcounter{page}{1}
+
+% Inhaltsverzeichnis
+\tableofcontents
+\pagebreak
+
+%changing the pagenumbering style (roman->arabic) resets pagecoutner. workaround:
+\newcounter{tmppage}
+\setcounter{tmppage}{\value{page}}
+\pagenumbering{arabic}
+\setcounter{page}{\value{tmppage}}
+
+\input{sections/1einleitung.tex}
+
+\input{sections/2grundlagen.tex}
+
+\input{sections/3anforderungen.tex}
+
+\input{sections/4spezifikation.tex}
+
+\input{sections/5implementierung.tex}
+
+\input{sections/6evaluation.tex}
+
+\input{sections/7zusammenfassung+rest.tex}
+
+\appendix
+\section{Literature}
+\bibliography{master}
+\bibliographystyle{ThesisStyleWithEtAl}
+
+\newpage
+
+\section*{Erklärung}
+\thispagestyle{empty}
+Hiermit erkläre ich, dass ich die vorliegende Arbeit selbstständig angefertigt habe. Die aus fremden Quellen direkt oder indirekt übernommenen Inhalte sind als solche kenntlich gemacht.\\
+Diese Arbeit wurde bisher in gleicher oder ähnlicher Form keiner anderen Prüfungsbehörde vorgelegt und auch noch nicht veröffentlicht.\\
+Ich bin mir bewusst, dass nicht wahrheitsgemäße Angaben rechtlich verfolgt werden können.\\
+\vspace{1cm}\\
+\makebox[2in]{\hrulefill}\\
+Jonas Brekle
+
+\end{document}

@@ -1,0 +1,78 @@
+\section{Anforderungen}
+\label{sec:anforderungen}
+Zuerst werde ich auf bestehende und neu entstandene Anwendungsfälle eingehen und die zugrundeliegenden Anforderungen aufzeigen. Danach im Abschnitt \ref{sec:req} einige allgemeine Requirements erläutern.
+
+\subsection{Anwendungsfälle}
+Die Anwendungsfälle lassen sich in zwei große Teilbereiche gliedern, die durch die zwei Einsatzbereiche der entwickelten Software entstehen. Zum Ersten soll die Query Klasse als abstrakter Syntaxbaum beim Parsen von SPARQL-Anfagen in der Erfurt-API dienen. Zum Zweiten soll es zentrales Element des Resource-Controllers in OntoWiki werden und dort ein modulares System zur Manipulation der Listenansicht von Resourcen zur Verfügung stellen.
+
+\subsubsection{Backend}
+\label{sec:backend}
+Im Backend von OntoWiki ist es an verschieden Stellen notwendig einen Query zu manipulieren. Zum Beispiel:
+
+\begin{itemize}
+\item{
+Wenn in einer Ontologie, die von OntoWiki verwaltet wird, das Prädikat \emph{owl:imports}\footnote{Siehe \url{http://www.w3.org/TR/owl-ref/\#Header}. \\
+Ist ein OntologyProperty, der aussagt, dass die Aussagen aus einer anderen Ontologie als implizites Wissen verfügbar sein sollen} genutzt wird, werden Anfragen an diese Ontologie so erweitert, dass für jedes import-Statement eine FROM Direktive hinzugefügt wird. Somit macht OntoWiki impilizites Wissen verfügbar.
+}
+\item{
+Um eine Zugriffskontrolle zu erreichen, werden die FROMs eines eingehenden Querys geprüft und mit den in der OntoWiki-Configuration eingetragenen User-Rechten verglichen und gegebenen Falles entfernt. 
+}
+\item{
+Wenn das Zend DB Backend genutzt wird, muss der SPARQL-Query in einen äqui\-va\-len\-ten SQL-Query umgeschrieben werden. Dabei muss auf GraphPattern-Ebene operiert werden.
+}
+\end{itemize}
+Bisher gab es für diese Zwecke die Klassen \texttt{Erfurt\_\-Sparql\_\-Query} und \texttt{Erfurt\_\-Sparql\_\-SimpleQuery}, die Queries auf verschiedenen Abstraktionsstufen re\-prä\-sen\-tier\-en können. Erstere wird vom Parser\footnote{eine Sammlung von Klassen; Primär: \texttt{Erfurt\_\-Sparql\_\-EngineDb\_\-SqlGenerator\_\-Adapter\_\-Ef}} erzeugt und soll vollen Zugriff auf alle Komponenten des Queries bieten. Leider sind die internen Strukturen jedoch durchgehend mit assoziativen Arrays realisiert und entziehen sich damit objektorientierten Konzepten und somit auch der Weiterverwendung ausserhalb des Parsers, in dem diese Strukturen hart kodiert sind.
+Der \texttt{SimpleQuery} verfolgt einen leichtgewichtigeren Ansatz: GraphPattern sind Strings und damit sozusagen \emph{Blackboxes}; FROMs und SolutionModifier sind jedoch sehr gut über Methoden manipulierbar. Ein Objekt kann über eine \texttt{initFromString}-Methode erzeugt werden, welche mit Regex-Operationen den Query in das interne Format überführt.
+Ziel ist es nun beide Ansätze zu konsolidieren und ein sauberes Konzept zu finden das zukünftige Entwicklungen zu ermöglichen. ddd
+
+\paragraph{Parsing}
+Die neue Query Klasse muss die volle Mächtigkeit der SPARQL besitzen um für den Parser nutzbar zu sein. Im Gegensatz zur bisherigen Datenstruktur soll der objektorientierte Ansatz den Code leichter wartbar machen (zum Beispiel bei Ver\-än\-der\-ung\-en des Standards oder Store-spezifischen Erweiterungen).\\
+Bei der Definition des SPARQL 1.1 Standards\footnote{siehe \cite{sparql11}} werden zum Beispiel verschiedene neue Konzepte wie Subqueries oder Aggregatfunktionen eingeführt. Der Änderungsaufwand in Query Klasse und Parser kann vergleichweise gering gehalten werden wenn man Vererbung und das Typsystem von PHP nutzen kann.\\
+Hierbei sei auf die Master-Arbeit von Rolland Brunec verwiesen, die parallel zu dieser Arbeit verlief und unter Anderem meine Entwicklungen nutzt um Erfurts SPARQL-Parser und Zend DB Adapter zu erneuern und erweitern.
+
+\paragraph{Query Optimierung}
+\label{para:opt}
+Mit geringen Aufwand sollen Optimierungsregeln implementierbar werden. Ein einfaches Beispiel ist die sogenannte \emph{Triple Pattern Selectivity Estimation}: In OptARQ\footnote{OptARQ ist eine Erweiterung von ARQ, welches Teil der JENA-API --- ein Java framework für Semantic Web Anwendungen --- ist. Siehe \url{http://jena.sourceforge.net/index.html}} werden Triple ihrer \emph{Selektivität} nach sortiert. Die Selektivität wird dabei durch die Anzahl der enthaltenen Variablen und gewisse statistische Informationen über den abgefragten Graph approximiert (vgl. \cite{bernstein}). Eine vereinfachte Variante, die ohne graphspezifische Informationen arbeitet, soll in der Query Klasse implementiert sein.
+
+\subsubsection{Frontend}
+
+Neben diesem Einsatz im Datenbank Backend sollen die Vorteile auch für die Frontend Programmlogik genutzt werden. Die Entwicklung von Ontologieverwaltungswerkzeugen gestaltet sich sich durch Nutzung einer speziellen Klasse für Queries deutlich einfacher und flexibler. Die Wiederverwendung von Code wird begünstig; Programmteile werden inter-operabler.
+
+\paragraph{Die Resource-Liste}
+Ein zentraler Anlaufpunkt der Navigation in Ontowiki ist die Listenansicht von RDF Resourcen:\\ Ursprünglich war OntoWiki darauf beschränkt die Liste auf Basis eines GET-Parameters, der die URI einer rdfs-Klasse enthält, einen SPARQL Query zu generieren, der alle Instanzen dieser Klasse auswählt. Der Query wurde dabei über String-Operationen gebaut.\\
+Die Liste wird durch die Klasse \texttt{OntoWiki\_\-Model\_\-Instances} erstellt und sollte in Zuge meiner Arbeit besser mit anderen Modulen integriert werden und um die Möglichkeit erweitert werden, gewisse Filter zu definieren.\\
+Das objektorientiertes Konzept soll dabei die Modularität gewährleisten:\\
+Ausgangspunkt soll nun ein Query sein, der zunächst \emph{alle} Resourcen eines RDF-Graphen ermittelt. Der Query wird von der Liste verwaltet. Die Einschränkung auf "`Instanzen einer Klasse"' ist schon der erste Filter. Alternativ zu rdfs-Klassen sollen hier aber auch alternative Konzepte wie SKOS-Hierarchien oder rdf-Collections oder beliebige selbst definierte Hierarchien mit eigenen "`In\-stan\-zier\-ungs-Prä\-di\-ka\-ten"' möglich sein.\\
+Filter sollen einfach erzeugbar, veränderbar und korrekt entfernbar sein und sich dabei unabhängig voneinander also modular verhalten. Die Liste Klasse \texttt{OntoWiki\_\-Model\_\-Instances} soll Methoden bereitstellen, die dies und auch die Manipulation und Weiternutzung durch andere Komponenten OntoWikis (statt nur in im \texttt{ResourceController}) er\-mög\-lich\-en.
+
+\paragraph{Das "`showproperties"' Modul}
+Dieses (bereits existierende) Modul wird in der Re\-sourc\-en-Liste angezeigt und ermöglicht es dem User Attribute zur Liste hinzuzufügen, welche als Spalten, gefüllt mit den jeweiligen Attributwerten der einzelnen Resourcen, angezeigt werden.
+Es muss mit der neuen Listenansicht integriert werden und soll des weiteren mit dem "`exploretags"' Modul interagieren (siehe Unten).
+Es zeigt zunächst eine Liste aller Predikate (Properties) an, die für die Resourcen der Liste im Graph verwendet wurden. Ein Klick auf ein Property fügt es als Spalte zur Liste hinzu. Im Query der von der Liste verwaltet wird bedeutet dies das Hinzufügen eines optionalen GraphPattern:
+%\begin{singlespace}
+\begin{verbatim}
+OPTIONAL {?resource foaf:name ?name}
+\end{verbatim}
+%\end{singlespace}
+
+\paragraph{Das "`filter"' Modul}
+
+
+\paragraph{Das "`exploretags"' Modul}
+
+\subsection{Requirements}
+\label{sec:req}
+
+\subsubsection{Allgemein}
+
+Als Anforderung wird eine Bedingung oder Eigenschaft, die ein System [...] benötigt um ein Problem zu lösen oder um einen Standard zu genügen (vgl. IEEE Std 610.12-1990). Drei Arten von Anforderungen sind funktionale Anforderungen, Qua\-li\-täts\-an\-forder\-ung\-en und Rahmenbedingungen (vgl. \cite{young}).
+
+Es soll versucht werden die Granularität möglichst bis auf BNF-Regel-Ebene zu senken --- sofern dies im Einzelfall sinnvoll ist.
+
+\subsubsection{short cuts}
+
+\subsubsection{chaining}
+== Fluent-Interface (von Martin Fowler) return this, nicht setAttribut-Schema sondern domänen-spezifischer name. lesbarer. wie ein satz. static factory method c\# style. vgl. \cite{schmidt} seite 135f
+
+\subsubsection{delete by id/group}
+\pagebreak

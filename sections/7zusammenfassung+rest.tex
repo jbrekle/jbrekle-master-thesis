@@ -1,0 +1,47 @@
+\section{Conclusion}
+\subsection{Discussion and Future Work}
+Our main contributions are (1) an extremely flexible extraction from \wik, with simple adaption to new Wiktionaries and changes via a declarative configuration. 
+By doing so, we are (2) provisioning a linguistic knowledge base with unprecedented detail and coverage. 
+The DBpedia project provides (3) a mature, reusable infrastructure including a public Linked Data service and SPARQL endpoint. All resources related to our \wik extraction, such as source-code, extraction results, pointers to applications etc. are available from our project page\footnote{\url{http://wiktionary.dbpedia.org}}.
+As a result, we hope it will evolve into a central resource and interlinking hub on the currently emerging Web of Linguistic Data.
+
+\subsection{Next Steps}
+\textbf{Wiktionary Live:}
+Users constantly revise articles.
+Hence, data can quickly become outdated, and articles need to be re-extracted. DBpedia-Live enables such a continuous synchronization between DBpedia and Wikipedia.
+The WikiMedia foundation kindly provided us access to their update stream, the Wikipedia OAI-PMH\footnote{Open Archives Initiative Protocol for Metadata Harvesting,\\
+cf. \url{http://www.mediawiki.org/wiki/Extension:OAIRepository}} live feed.
+The approach is equally applicable to \wik. 
+The \wik Live extraction will enable users for the first time ever to query \wik like a database in real-time and receive up-to-date data in a machine-readable format.
+This will strengthen \wik as a central resource and allow it to extend its coverage and quality even more.\\
+\textbf{Wiki based UI for the WLE configurations:}
+To enable the crowd-sourcing of the extractor configuration, an intuitive web interface is desirable. Analogue to the mappings wiki\footnote{\url{http://mappings.dbpedia.org/}} of DBpedia, a wiki could help to hide the technical details of the configuration even more. 
+Therefore a JavaScript based WYSIWYG XML editor seems useful. 
+There are various implementations, which can be easily adapted.\\
+\textbf{Linking:}
+Finally, an alignment with existing linguistic resources like WordNet and general ontologies like YAGO or DBpedia is essential. That way \wik will allow for the interoperability across a multilingual semantic web.
+
+\subsection{Open Research Questions}
+\subsubsection{Publishing Lexica as Linked Data}
+The need to publish lexical resources as linked data has been recognized recently~\cite{NuzzoleseEtAl_KCAP2011}.
+Although principles for publishing RDF as Linked Data are already well established~\cite{auer-swj-2010,linkeddata-book}, the choice of identifiers and first-class objects is crucial for any linking approach.
+A number of questions need to be clarified, such as which entities in the lexicon can be linked to others. 
+Obvious candidates are entries, senses, synsets, lexical forms, languages, ontology instances and classes, but different levels of granularity have to be considered and a standard linking relation such as \texttt{owl:sameAs} will not be sufficient. 
+Linking across data sources is at the heart of linked data. 
+An open question is how lexical resources with differing schemata can be linked and how are linguistic entities to be linked with ontological ones. 
+There is most certainly an impedance mismatch to bridge.
+
+%The success of DBpedia~\cite{dbpedia_jws_09} as a ``crystallization point for the Web of Data'' is predicated on the stable identifiers provided by Wikipedia and are an obvious prerequisite for any data authority.
+The success of DBpedia as a ``crystallization point for the Web of Data'' is predicated on the stable identifiers provided by Wikipedia and are an obvious prerequisite for any data authority.
+Our approach has the potential to drive this process by providing best practices and live showcases and data in the same way DBpedia has provided it for the LOD cloud. 
+Especially, our work has to be seen in the context of the recently published Linguistic Linked Data Cloud\cite{CHIARCOS12.912} and the community effort around the Open Linguistics Working Group (OWLG)\footnote{\url{http://linguistics.okfn.org}} and NIF~\cite{hellmann-2012-ekaw}.
+Our Wiktionary conversion project provides valuable data dumps and linked data services to further fuel development in this area.  
+
+
+\subsubsection{Algorithms and methods to bootstrap and maintain a Lexical Linked Data Web}
+
+State-of-the-art approaches for interlinking instances in RDF knowledge bases are mainly build upon similarity metrics~\cite{NGAU11,conf/semweb/VolzBGK09} to find duplicates in the data, linkable via \texttt{owl:sameAs}.
+Such approaches are not directly applicable to lexical data.
+Existing linking properties either carry strong formal implications (e.g. \texttt{owl:sameAs}) or do not carry sufficient domain-specific information for modelling semantic relations between lexical knowledge bases.
+
+\newpage

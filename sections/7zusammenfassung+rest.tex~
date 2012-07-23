@@ -1,0 +1,7 @@
+\section{Zusammenfassung und Ausblick}
+Das Ergebnis der vorliegenden Arbeit bietet OntoWiki bzw. der Erfurt-API die Möglichkeit, SPARQL-Querys objektorientiert und komfortabel zu handhaben. Es bietet eine vollständige Abbildung des W3C-Standards auf eine PHP-Datenstruktur, die leicht an zukünftige Änderungen anpassbar und auch in anderen Projekten nutzbar ist.\\
+Die Integration in OntoWiki hat viele Neuerungen wie beispielsweise umfangreiche Filteroptionen für die Instanzliste gebracht. Querys und somit die Instanzliste können nun (mit persistenter Speicherung in der Server-Session) über viele Skriptläufe hinweg sukzessive mit verschiedenen Filteroptionen verändert werden.\\
+Die Nutzung als abstrakter Syntaxbaum (AST) im Parser wird weitere Entwicklungen möglich machen, wie beispielsweise das Anzeigen beliebiger Querys aus dem Query-Editor als Liste sowie das Bookmarken selbiger.\\
+Das Ziel meiner Bachelorarbeit, OntoWiki bzw. Erfurt um eine API für SPARQL-Querys zu erweitern, wurde erreicht. An verschiedenen Stellen, an denen vorher Querys über Stringoperationen gebaut wurden, soll der Einsatz der Query2-Klasse die Fehleranfälligkeit vermindern und dabei die Entwicklungsgeschwindigkeit erhöhen. Der Zugriff über objektorientierte Konzepte soll dies gewährleisten. Es haben sich zahlreiche neue Anwendungsfälle und Features ergeben, die das Nutzererlebnis stark verbessert haben. 
+
+\newpage

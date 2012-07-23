@@ -1,0 +1,486 @@
+\section{Spezifikation}
+\label{sec:spezifikation}
+\subsection{Überblick}
+Die Klasse \texttt{Erfurt\_Sparql\_Query2} ist das oberste Element der erstellten Datenstruktur, die eine SPARQL-Anfrage repräsentiert. Ihre Funktionionalität besteht darin, alle Eigenschaften, die nicht den WHERE-Teil betreffen, über Methoden konfigurierbar zu machen. Diese Komponenten sind beispielsweise Limit- und Offsetangaben, Projektionsvariablen, die Sortieranweisung, Prefixe aber auch die Einstellung, ob es sich um einen SELECT oder ASK Query usw. handelt. Des Weiteren besteht die Klasse aus Verweisen auf verschiedene andere Objekten; in erster Linie einem \texttt{Query2\_\-Group\-Graph\-Pattern}, das den WHERE-Teil repräsentiert (und wiederum andere Objekte enthält usw.).\footnote{Da Erfurt eine Zend (\url{http://framework.zend.com/}) Applikation ist und für den autoloader (\url{http://framework.zend.com/manual/en/zend.loader.autoloader.html}) eine strenge Namenskonvention nutzt, die den Ort des Quellcodes impliziert, ist allen hier erstellten Klassen ein \texttt{Erfurt\_Sparql\_} voranzustellen, was ich aber zur besseren Lesbarkeit weglasse.}\\
+Zunächst jedoch einige allgemeine Betrachtungen: Die Modellierung ist sehr stark an der SPARQL-Grammatik orientiert; für fast alle Regeln der Grammatik wurde eine PHP-Klasse angelegt und entsprechend der linken Seite der Regel benannt. Insgesamt wurden 71 PHP-Klassen eingeführt, um die 100 Regeln der Grammatik abzubilden; dies mag viel erscheinen, jedoch wurden dazu nur 4354 Zeilen PHP-Code benötigt (also durchschnittlich etwa 61 Zeilen pro Klasse). Die Reduktion der Anzahl der Klassen ist einerseits zurückzuführen auf die Zusammenfassung von nur einmal referenzierten Regeln in die referenzierende Regel und andererseits durch Entfernen von Regeln für Terminale, die schon im Typsystem von PHP gegeben sind (Integer, Fließkomma-Zahlen und Zeichenketten). Die geringe Zahl von Zeilen pro Klasse ist allgemein mit der moderaten funktionalen Komplexität der Problemstellung sowie mit hoher Code-Wiederverwendung durch Vererbung zu begründen. So wurden beispielsweise zwei Hilfsklassen eingeführt, die nicht direkt eine Regel der Grammatik abbilden, dafür jedoch den Mengen-Charakter bzw. die Kommutativität von bestimmten Ausdrücken realisieren. Von diesen Klassen erben dann die Klassen, die beispielsweise GraphPattern oder additive numerische Ausdrücke repräsentieren (mehr dazu in Abschnitt \ref{helper}). Als weiteres Beispiel kann die Vererbung zwischen \texttt{Query2\_\-Optional\-Graph\-Pattern} und \texttt{Query2\_\-Group\-Graph\-Pattern} angegeben werden, die ermöglicht, dass \texttt{Query2\_\-Optional\-Graph\-Pattern} lediglich die toString-Methode von \texttt{Query2\_\-Group\-Graph\-Pattern} überladen muss. Es wurde also stets versucht, Funktionalität in Super-Klassen auszulagern und somit ein sauberes objektorientiertes Design zu erreichen. \\ 
+Im Folgenden möchte ich einen kurzen Überblick über die Klassen geben und dann die wichtigsten Methoden der Query-Klasse erläutern. Zunächst seien hier alle erstellten Klassen und Interfaces (kursiv) notiert: \\
+\newpage
+\begin{table}[!ht]
+ \texttt{
+    \footnotesize{
+    \begin{minipage}{.45\linewidth}
+  	\begin{tabular}{|l|}
+			\hline 
+		Query2 \\ \hline
+		Query2\_A  \\ \hline
+		Query2\_BlankNode  \\ \hline
+		Query2\_BlankNodePropertyList  \\ \hline
+		Query2\_BooleanLiteral  \\ \hline
+		Query2\_Collection  \\ \hline
+		Query2\_AndOrHelper  \\ \hline
+		Query2\_ConditionalOrExpression  \\ \hline
+		Query2\_ConditionalAndExpression  \\ \hline
+		Query2\_Equals  \\ \hline
+		Query2\_NotEquals  \\ \hline
+		Query2\_Larger  \\ \hline
+		Query2\_Smaller  \\ \hline
+		Query2\_LargerEqual  \\ \hline
+		Query2\_SmallerEqual  \\ \hline
+		Query2\_AdditiveExpression  \\ \hline
+		Query2\_MultiplicativeExpression  \\ \hline
+		Query2\_UnaryExpressionNot  \\ \hline
+		Query2\_UnaryExpressionPlus  \\ \hline
+		Query2\_UnaryExpressionMinus  \\ \hline
+		Query2\_Function  \\ \hline
+		Query2\_BrackettedExpression  \\ \hline
+		Query2\_Str  \\ \hline
+		Query2\_Lang  \\ \hline
+		Query2\_Datatype  \\ \hline
+		Query2\_isIri  \\ \hline
+		Query2\_isUri  \\ \hline
+		Query2\_isLiteral  \\ \hline
+		Query2\_isBlank  \\ \hline
+		Query2\_bound  \\ \hline
+		Query2\_LangMatches  \\ \hline
+		Query2\_sameTerm  \\ \hline
+		Query2\_Regex  \\ \hline
+		Query2\_ConstructTemplate  \\ \hline
+		Query2\_Filter  \\ \hline
+		Query2\_GraphClause  \\ \hline
+        \end{tabular}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{.45\linewidth}
+    	\begin{tabular}{|l|}
+		\hline 		
+		Query2\_GraphGraphPattern  \\ \hline
+		Query2\_GroupGraphPattern  \\ \hline
+		Query2\_GroupOrUnionGraphPattern  \\ \hline
+		Query2\_IriRef  \\ \hline
+		Query2\_Nil  \\ \hline
+		Query2\_NumericLiteral  \\ \hline
+		Query2\_ObjectList  \\ \hline
+		Query2\_OptionalGraphPattern  \\ \hline
+		Query2\_OrderClause  \\ \hline
+		Query2\_Prefix  \\ \hline
+		Query2\_PropertyList  \\ \hline
+		Query2\_RDFLiteral  \\ \hline
+		Query2\_Triple  \\ \hline
+		Query2\_TriplesSameSubject  \\ \hline
+		Query2\_Var  \\ \hline
+		\textit{Query2\_Constraint}  \\ \hline
+		\textit{Query2\_Expression}  \\ \hline
+		\textit{Query2\_IF\_ConditionalOrExpression}  \\ \hline
+		\textit{Query2\_IF\_ConditionalAndExpression}  \\ \hline
+		\textit{Query2\_RelationalExpression}  \\ \hline
+		\textit{Query2\_IF\_AdditiveExpression}  \\ \hline
+		\textit{Query2\_IF\_MultiplicativeExpression}  \\ \hline
+		\textit{Query2\_IF\_UnaryExpression}  \\ \hline
+		\textit{Query2\_PrimaryExpression}  \\ \hline
+		\textit{Query2\_IriRefOrFunction}  \\ \hline
+		\textit{Query2\_BuiltInCall}  \\ \hline
+		\textit{Query2\_IF\_TriplesSameSubject}  \\ \hline
+		\textit{Query2\_IF\_ObjectList}  \\ \hline
+		\textit{Query2\_GraphNode}  \\ \hline
+		\textit{Query2\_TriplesNode}  \\ \hline
+		\textit{Query2\_VarOrTerm}  \\ \hline
+		\textit{Query2\_Verb}  \\ \hline
+		\textit{Query2\_VarOrIriRef}  \\ \hline
+		\textit{Query2\_GraphTerm}  \\ \hline
+		\textit{Query2\_TriplesNode}  \\ \hline
+        \end{tabular}
+    \end{minipage}
+    }
+    }
+    \caption{Alle erstellten Klassen und Interfaces (kursiv)}
+\end{table}
+Diese Klassen liegen in \texttt{Erfurt/Sparql/Query2} und sind in ihrer Gesamtheit nötig, um die SPARQL-Grammatik abzubilden. Das Grundprinzip ist allen Klassen gemein: Sie repräsentieren eine (oder mehrere) Regeln der Grammatik, bieten Methoden zum Modifizieren der variablen Teile und haben eine \texttt{getSparql}-Methode, die die SPARQL-konforme Stringdarstellung zurückgibt.\\
+Es soll hier darauf verzichtet werden, die Klassen im Einzelnen zu dokumentieren; für diesen Zweck existiert eine Dokumentation\footnote{\url{http://docs.ontowiki.net/fw/}} und außerdem sind die Klassen sehr generisch. Im Folgenden sollen vielmehr zentrale Punkte an ausgewählten Beispielen erläutert werden. Klassen, die auf \texttt{Helper} enden oder Interfaces, die \texttt{IF} im Namen tragen, bilden nicht direkt eine Grammatik-Regel ab. Ihre Bedeutung wird im Abschnitt \ref{sec:implementierung} erläutert.
+\newpage
+Die generelle Funktionsweise möchte ich zunächst an einem sehr einfachen Beispiel zeigen. An diesem soll klar werden, was gemeint ist, wenn von einer Abbildung auf eine Datenstruktur und geringer funktionaler Komplexität die Rede ist (womit nicht gesagt sein soll, dass alle Klassen ähnlich trivial sind). \\ Die \texttt{Query2\_Prefix}-Klasse wird dazu genutzt, um Prefix-Deklarationen zu Beginn einer Anfrage darzustellen. Dazu kann man Zeile 1 von Beispiel \ref{ex:query} betrachten:\\
+
+\verb+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>+ 
+\vspace{0.3cm}\\
+Das UML-Diagramm der Klasse zeigt die wichtigen\footnote{\texttt{getter} und \texttt{setter} für Instanzvariablen wurden ausgelassen.} Methoden:\\
+\begin{center}
+\textsf{
+  \umlClass[box=,reference=Query2Prefix]{Query2\_Prefix}{
+	%ATTRIBUTES	
+	\umlAttribute[visibility=\#, type=string]{name}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_IriRef]{iri}
+ }{
+	%METHODS
+	\umlMethod[visibility=+, returntype=]{\_\_construct}{string name, Erfurt\_Sparql\_Query2\_IriRef iri}
+	\umlMethod[visibility=+, returntype=string]{getSparql}{}
+  }
+}\end{center}
+\vspace{0.5cm}
+Die Klasse wird mit zwei Parametern instanziert: \texttt{name} und \texttt{iri}. Wobei \texttt{iri} ein Objekt vom typ \texttt{Erfurt\_\-Sparql\_\-Query2\_\-IriRef} ist. Diese Werte werden in Instanzvariablen gespeichert und bei Aufruf der \texttt{get\-Sparql}-\-Methode wird aus beiden ein String konstruiert. Die Methode besteht nur aus folgender Codezeile:
+\begin{lstlisting}[showstringspaces=false]
+return 'PREFIX ' . $this->name . ':' . $this->iri->getSparql(); 
+\end{lstlisting}
+Nach diesem Prinzip funktionieren alle \texttt{Query2\_xyz} Klassen. Wenn ein Objekt andere \texttt{Query2\_xyz}-Objekte enthält, ruft es in seiner \texttt{get\-Sparql}-\-Methode deren \texttt{get\-Sparql}-\-Methoden auf, und so wird rekursiv ein Query-String konstruiert.\\
+\vfill
+\newpage
+\subsection{Query}
+Betrachten wir nun die größte und wichtigste Klasse: Die Query-Klasse. Das UML-Diagramm auf der nächsten Seite zeigt den Aufbau. Wie bereits erwähnt, bildet diese Klasse die oberste Ebene eines Querys. Hier können folgende Eigenschaften modifiziert werden:\\
+\begin{itemize}
+\item Base*
+\item Prefixe**
+\item From-Anweisungen**
+\item Projektionsvariablen**
+\item Distinct- oder Reduced-Anweisung*
+\item Limit und Offset*
+\item Order-Klausel*
+\end{itemize}
+Für Eigenschaften mit * gibt es gewöhnliche  \texttt{getter} und \texttt{setter}. Mit ** gekennzeichnete Eigenschaften sind mengenartig. Das heißt, sie können aus beliebig vielen Teilen bestehen (beispielsweise drei Prefixe) und es gibt jeweils folgende \texttt{getter} und \texttt{setter}\footnote{Wobei X natürlich Platzhalter für den jeweiligen Eigenschaftsnamen ist.}:\\
+\texttt{
+\begin{itemize}
+\item addX(\$object)
+\item removeX([\$index|\$object])
+\item removeAllX()
+\item hasX()
+\item hasX(\$object)
+\end{itemize}
+}
+Intern werden diese **-Eigenschaften über Arrays verwaltet und die \texttt{get\-Sparql}-Me\-tho\-de setzt die Komponenten gemäß der SPARQL-Grammatik zusammen.\\
+Neben diesen Eigenschaften ist die wichtigste Komponente das GraphPattern, das den WHERE-Teil repräsentiert. Dieses ist jedoch nicht mehr Teil der \texttt{Query2}-Klasse, sondern wird von der \texttt{Query2\_GroupGraphPattern}-Klasse  realisiert, die spezielle Methoden zum hinzufügen von Tripeln etc. zur Verfügung stellt. Die \texttt{Query2}-Klasse erstellt bei ihrer Instanzierung ein neues \texttt{Query2\_GroupGraphPattern}-Objekt und behält eine Referenz in der \texttt{where}-Instanzvariable.\\
+\textsf{\centering{
+  \umlClass[box=,sizeX=0.9\textwidth]{Query2}{
+	%ATTRIBUTES	
+	\umlAttribute[visibility=\#, type=string]{type}
+	\umlAttribute[visibility=\#, type=int]{limit}
+	\umlAttribute[visibility=\#, type=int]{offset}
+	\umlAttribute[visibility=\#, type=int]{distinctReducedMode}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_OrderClause]{order}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_Var{$[\,]$}]{projectionVars}
+	%\umlAttribute[visibility=\#, type=bool]{star} 
+	%\umlAttribute[visibility=\#, type=bool]{countStar}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_GroupGraphPattern]{where}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_Prefix{$[\,]$}]{prefixes}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_GraphClause{$[\,]$}]{froms}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_IriRef]{base}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_ConstructTemplate]{constructTemplate}
+	\umlAttribute[visibility=+,  type=int]{\underline{idCounter}}
+	%\umlAttribute[visibility=\#, type=int]{idCounterSerialized}
+   }{
+	%METHODS
+	\umlMethod[visibility=+, returntype=int]{\underline{getNextID}}{}
+	\umlMethod[visibility=+, returntype=void]{\_\_construct}{}
+	%\umlMethod[visibility=+, returntype=string{$[ ]$}]{\_\_clone}{}
+	\umlMethod[visibility=+, returntype=string]{\_\_toString}{}
+	\umlMethod[visibility=+, returntype=void]{\_\_call}{string name, mixed params}
+	%\umlMethod[visibility=+, returntype=void]{\_\_sleep}{}
+	%\umlMethod[visibility=+, returntype=void]{\_\_wakeup}{}
+	\umlMethod[visibility=+, returntype=string]{getSparql}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setQueryType}{string type}
+	\umlMethod[visibility=+, returntype=bool]{getType}{}
+	%\umlMethod[visibility=+, returntype=bool]{hasOffset}{}
+	%\umlMethod[visibility=+, returntype=bool]{hasLimit}{}
+	%\umlMethod[visibility=+, returntype=bool]{hasOrderBy}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setWhere}{Erfurt\_Sparql\_Query2\_GroupGraphPattern npattern}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_GroupGraphPattern]{getWhere}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setConstructTemplate}{ConstructTemplate npattern}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_ConstructTemplate]{getConstructTemplate}{}
+	\umlMethod[visibility=+, returntype=void]{setLimit}{int nlimit}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeLimit}{}
+	\umlMethod[visibility=+, returntype=int]{getLimit}{}
+	\umlMethod[visibility=+, returntype=void]{setOffset}{int noffset}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeOffset}{}
+	\umlMethod[visibility=+, returntype=int]{getOffset}{}
+%	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setStar}{bool bool}
+%	\umlMethod[visibility=+, returntype=bool]{isStar}{}
+%	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setCountStar}{bool bool}
+%	\umlMethod[visibility=+, returntype=bool]{isCountStar}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setDistinct}{bool bool}
+	\umlMethod[visibility=+, returntype=bool]{isDistinct}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setReduced}{bool bool}
+	\umlMethod[visibility=+, returntype=bool]{isReduced}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setBase}{Erfurt\_Sparql\_Query2\_IriRef base}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeBase}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_IriRef]{getBase}{mixed base}
+	\umlMethod[visibility=+, returntype=bool]{hasBase}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{addFrom}{Erfurt\_Sparql\_Query2\_GraphClause from, bool named}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_GraphClause]{getFrom}{int i}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_GraphClause{$[\,]$}]{getFroms}{}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeFroms}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeFrom}{int needle}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setFroms}{Erfurt\_Sparql\_Query2\_GraphClause{$[\,]$} froms}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{setFrom}{int i, Erfurt\_Sparql\_Query2\_GraphClause from}
+	\umlMethod[visibility=+, returntype=bool]{hasFroms}{}
+	\umlMethod[visibility=+, returntype=bool]{hasFrom}{Erfurt\_Sparql\_Query2\_GraphClause from}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{addProjectionVar}{Erfurt\_Sparql\_Query2\_Var var}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeProjectionVar}{Erfurt\_Sparql\_Query2\_Var var}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removeAllProjectionVars}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{addPrefix}{Erfurt\_Sparql\_Query2\_Prefix prefix}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{removePrefix}{Erfurt\_Sparql\_Query2\_Prefix pre}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_Var{$[\,]$}]{getProjectionVars}{}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_Var{$[ ]$}]{getVars}{}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_OrderClause]{getOrder}{}
+	%\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2\_Var]{getVar}{string name}
+	\umlMethod[visibility=+, returntype=Erfurt\_Sparql\_Query2]{optimize}{}
+  }
+}
+}
+\subsection{OntoWiki\_Model\_Instances}
+Der erste Einsatz der gerade beschriebenen Query-Klassen ist die Instanzliste von OntoWiki (\url{<ontowiki>/list}). Diese kann beispielsweise alle Instanzen einer Klasse anzeigen. Die Funktionalität wurde im Verlauf der Arbeit stark erweitert.
+\begin{figure}[!ht]
+  \centering
+  \includegraphics{files/ow-list.eps}
+  \caption{Die Instanzliste}
+  \label{img:instance-list}
+\end{figure}\\
+Die ListeVerschiedene Optionen sind dabei einstellbar. Die Optionen sind einzeln über Module und Komponenten\footnote{siehe zur Definition \url{http://code.google.com/p/ontowiki/wiki/ExtensionCookbook}.} konfigurierbar, die jeweils eine eigene kleine GUI mitbringen:
+\begin{center}
+	\begin{longtable}{ll}
+		\textbf{Optionsgruppe} & \textbf{verantwortliche Extension} \\ \hline \hline
+		Typeinschränkung & Navigation Component (1) \\
+		Limit und Offset & Pager (2) \\
+		angezeigte Instanz-Eigenschaften\footnote{Dies die zusätzlichen Spalten in der Instanz-Liste. Im Beispiel ist \emph{Country} eine ausgewählte shown Property} & shown Properties Modul (3) \\
+		Filter & Filter Modul (4) \\
+	\end{longtable}
+	\label{tab:list-prop}
+\end{center}
+Die Steuerung dieser Liste läuft über die Klasse \texttt{OntoWiki\_Model\_Instances}: Dort wird ein Query verwaltet, der die Instanzen auswählt und die genannten Optionen über Methoden konfigurierbar macht. Die Extensions stellen also GUIs für diese Methoden dar. Im Folgenden möchte ich die Klasse \texttt{OntoWiki\_Model\_Instances} sowie ihre Verknüpfungen mit den Extensions im Detail vorstellen.\\
+\textsf{\centering
+  \umlClass[box=,sizeX=0.9\textwidth,reference=instances]{OntoWiki\_Model\_Instances}{
+	%ATTRIBUTES	
+	%\umlAttribute[visibility=\#, type=string]{mode}
+	%\umlAttribute[visibility=\#, type=string]{searchText}
+	%\umlAttribute[visibility=\#, type=string]{allTriple}
+	%\umlAttribute[visibility=\#, type=string]{\_type = null}
+	%\umlAttribute[visibility=\#, type=string]{\_subClasses = array()}
+	%\umlAttribute[visibility=\#, type=string]{\_memberPredicate = null}
+	\umlAttribute[visibility=\#, type=array]{\_allProperties}
+	\umlAttribute[visibility=\#, type=bool]{\_allPropertiesUptodate  = false}
+	\umlAttribute[visibility=\#, type=array]{\_shownProperties}
+	\umlAttribute[visibility=\#, type=array]{\_shownPropertiesConverted}
+	\umlAttribute[visibility=\#, type=bool]{\_shownPropertiesConvertedUptodate}
+	\umlAttribute[visibility=\#, type=array]{\_ignoredShownProperties}
+	\umlAttribute[visibility=\#, type=array]{\_values}
+	\umlAttribute[visibility=\#, type=bool]{\_valuesUptodate}
+	\umlAttribute[visibility=\#, type=array]{\_resources}
+	\umlAttribute[visibility=\#, type=bool]{\_resourcesUptodate}
+	\umlAttribute[visibility=\#, type=array]{\_resourcesConverted}
+	\umlAttribute[visibility=\#, type=bool]{\_resourcesConvertedUptodate}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2\_Var]{\_resourceVar}
+	\umlAttribute[visibility=\#, type=array]{\_filter}
+	\umlAttribute[visibility=\#, type=array]{\_results}
+	\umlAttribute[visibility=\#, type=bool]{\_resultsUptodate}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2]{\_resourceQuery}
+	\umlAttribute[visibility=\#, type=Erfurt\_Sparql\_Query2]{\_valueQuery}
+	%\umlAttribute[visibility=\#, type=array]{\_valueQueryResourceFilter}
+ }{
+	%METHODS
+	\umlMethod[visibility=+, returntype=]{\_\_construct}{store, graph, options}
+	\umlMethod[visibility=+, returntype=]{\_\_clone}{}
+	%\umlMethod[visibility=\#, returntype=]{addAllTriple}{withObjects = false}
+	\umlMethod[visibility=+, returntype=]{addShownProperty}{propertyUri, propertyName, inverse, datatype}
+	\umlMethod[visibility=+, returntype=]{removeShownProperty}{key}
+	\umlMethod[visibility=+, returntype=]{addFilter}{property, isInverse, filter, value1, value2, valuetype, literaltype, hidden, id, negate}
+	\umlMethod[visibility=+, returntype=]{removeFilter}{id}
+	\umlMethod[visibility=+, returntype=]{getFilter}{}
+	\umlMethod[visibility=+, returntype=]{addTypeFilter}{type, id = null, option = array}
+	\umlMethod[visibility=+, returntype=]{addSearchFilter}{str, id = null}
+	\umlMethod[visibility=+, returntype=]{addTripleFilter}{triples, id = null}
+	\umlMethod[visibility=+, returntype=]{invalidate}{}
+	\umlMethod[visibility=+, returntype=]{updateValueQuery}{}
+	\umlMethod[visibility=+, returntype=]{getQuery}{}
+	\umlMethod[visibility=+, returntype=]{getResourceQuery}{}
+	\umlMethod[visibility=\#, returntype=]{getResults}{}
+	\umlMethod[visibility=+, returntype=]{getValues}{}
+	\umlMethod[visibility=+, returntype=]{getShownResources}{}
+	\umlMethod[visibility=+, returntype=]{getResources}{}
+	\umlMethod[visibility=+, returntype=]{hasData}{}
+	\umlMethod[visibility=+, returntype=]{getPermalink}{}
+	\umlMethod[visibility=+, returntype=]{getResourceVar}{}
+	\umlMethod[visibility=+, returntype=]{getAllProperties}{inverse = false}
+	\umlMethod[visibility=+, returntype=]{getPossibleValues}{property, distinct = true, inverse = false}
+	\umlMethod[visibility=+, returntype=]{\underline{convertProperties}}{properties}
+	\umlMethod[visibility=+, returntype=]{getShownProperties}{}
+	\umlMethod[visibility=+, returntype=]{getShownPropertiesPlain}{}
+	\umlMethod[visibility=+, returntype=]{\underline{convertResources}}{resources}
+	\umlMethod[visibility=+, returntype=]{setLimit}{limit}
+	\umlMethod[visibility=+, returntype=]{setOffset}{offset}
+	\umlMethod[visibility=+, returntype=]{getLimit}{}
+	\umlMethod[visibility=+, returntype=]{getOffset}{}
+	%\umlMethod[visibility=+, returntype=]{getSearchText}{}
+}
+}
+Wird die Instanzliste im Browser aufgerufen (wenn ein User in der Navigation-Com\-po\-nent beispielsweise eine RDF-Schema-Klasse anklickt), so geschieht die Verarbeitung der Anfrage im \texttt{ResourceController} in der \texttt{instancesAction}. Allerdings wird dort nur lesend auf die Liste zugegriffen. Das \texttt{OntoWiki\_Model\_Instances}-Objekt wird dann vom \texttt{ResourceController} dazu genutzt, die Liste zu generieren, indem der Controller die \texttt{getResources}-Methode und die \texttt{getValues}-Methode nutzt, die den ResourceQuery (der die Filter enthält) und den ValueQuery (der die shown Properties enthält) gegen den TripleStore ausführt und das Ergebnis nachverarbeitet und zurückgibt. Die Verwaltung des Querys ist dabei stets in das \texttt{OntoWiki\_Model\_In\-stan\-ces}-Objekt gekapselt, das als Blackbox dient. Alle Manipulationen verlaufen \emph{im} Objekt. Wenn andere Controller (wie beispielsweise die Map) Operationen auf dieser Liste ausführen wollen, tun sie dies über entsprechende Methoden. Im Gegensatz dazu gab es vorher eine Sessionvariable, die die URI der gewählten RDF-Schema-Klasse enthielt; wenn der ResourceController oder andere die Liste der Instanzen benötigten, bauten sie sich selbst einen Query und führten ihn aus. Die neue Funktionsvielfalt machte es nötig, diese Operationen zu zentralisieren. Um das Zusammenspiel zu visualisieren sei noch einmal auf Abbildung \ref{fig:bigpic} verwiesen.\\
+Der modifizierende Zugriff erfolgt in einem Zend-Controller-Plugin namens \texttt{List\-Set\-up\-Hel\-per}, welches bei \emph{jedem} Request (also vor jedem Controller Aufruf) ausgeführt wird. Dort wird zunächst in der \texttt{session}\footnote{\url{http://www.php.net/manual/en/book.session.php} und \url{http://framework.zend.com/manual/de/zend.session.introduction.html}.} nach einer schon vorhanden Liste gesucht. Wird keine gefunden oder passt diese nicht zur aktuellen Anfrage oder wird die explizit gefordert, wird ein neues Objekt vom Typ \texttt{OntoWiki\_Model\_Instances} instanziert und in der Session gespeichert. Eine unveränderte Liste erzeugt mithilfe eines \texttt{Query2}-Objekts folgenden SPARQL-Query:
+\begin{lstlisting}[captionpos=b, caption=Ausgangs-Query]
+SELECT ?resourceUri
+FROM <http://selectedmodel.com>
+WHERE {
+  ?resourceUri ?p ?o
+}
+LIMIT 10
+\end{lstlisting}
+Dieser Query selektiert \emph{alle} Resourcen im gewählen Graph und limitiert (durch den Pager) auf die ersten zehn Resourcen. Der \texttt{ListSetupHelper} hat des Weiteren den Zweck, dafür zu sorgen, dass jeder Request auf HTTP GET und POST Parameter überprüft wird, die eine Änderung der Instanzliste anfordern, und gegebenen Falles das \texttt{OntoWiki\_Model\_Instances}-Objekt in der Session über dessen Methoden zu verändern. Die Navigations-Kom\-po\-nen\-te übergibt einen GET-Parameter, der die Liste (in unserem Beispiel) auf die Instanzen einer RDF-Schema-Klasse einschränkt. Dieser Parameter wird vom \texttt{ListSetupHelper} abgefangen, in einen Aufruf der \texttt{add\-Type\-Fil\-ter}-Me\-tho\-de übersetzt und dann aus dem Request entfernt\footnote{Indem ein HTTP-Redirect auf eine URL, die der originalen URL --- allerdings ohne diesen Parameter --- entspricht, ausgelöst wird.}. Die \texttt{add\-Type\-Fil\-ter}-Me\-tho\-de wird intern Folgendes tun: Sie entfernt das Tripel aus dem Pattern, fügt ein anderes Tripel hinzu und merkt sich dieses über einen Eintrag in der \texttt{\_filter}-Instanzvariablen. Der resultierende Query sieht wie folgt aus:
+\begin{lstlisting}[captionpos=b, caption=Query mit Type Filter]
+SELECT ?resourceUri
+FROM <http://example.com/selectedmodel>
+WHERE {
+  ?resourceUri a <http://example.com/selectedmodel/someclass>
+}
+LIMIT 10
+\end{lstlisting}
+Der \texttt{ListSetupHelper} wartet auf folgende HTTP GET und POST Parameter:
+
+\begin{center}
+	\begin{longtable}{ll}
+		\textbf{Parameter} & \textbf{Bedeutung} \\ \hline \hline
+		init & erzwingt das Zurücksetzen der Listenkonfiguration \\
+		instancesconfig & enthält Änderungsanweisungen (siehe unten) \\
+		s & shortcut\footnote{\label{fn:shortcut} Diese Änderungsanweisung kann auch im instancesconfig-Parameter übergeben werden; aus Kompatibilitätsgründen wurde dieser \emph{veraltete} Parameter jedoch als Alias behalten.} für Such-Parameter\\ 
+		class & shortcut\footref{fn:shortcut} für Typ-Filter\\
+		p  & Seitennummer des Pagers\\
+		limit & Anzahl der Instanzen pro Seite\\
+	\end{longtable}
+	\label{tab:list-conf-params}
+\end{center}
+Der instancesconfig-Parameter enthält eine JSON\footnote{\url{http://json.org}}-codierte Datenstruktur, die gleichzeitig verschiedene Anweisungen, betreffend Filter und angezeigter Eigenschaften (shown Properties), enthalten kann. Die allgemeine Struktur ist folgende:\\
+\begin{center}
+{ \sffamily \small
+\begin{tabular}{|l|l|}
+	\hline
+	\multicolumn{2}{|c|}{object}\\ \hline
+	shownProperties & \begin{tabular}{|l|l}
+		array & \begin{tabular}{|l|l|}
+			 0 & \begin{tabular}{|l|l|}
+				\multicolumn{2}{|c|}{object}\\ \hline
+				uri & \url{http://ex.com/prop1} \\ \hline
+				action & remove \\ \hline
+				inverse & false \\ 
+			\end{tabular} \\ \hline
+
+			1 & \begin{tabular}{|l|l|}
+				\multicolumn{2}{|c|}{object}\\ \hline
+				uri & \url{http://ex.com/prop2} \\ \hline
+				label & Property 2 \\ \hline
+				action & add \\ \hline
+				inverse & false \\ 
+			\end{tabular} \\ \hline
+			... & ...\\
+		\end{tabular}
+	\end{tabular} \\ \hline
+
+	 filter & \begin{tabular}{|l|l}
+		array & \begin{tabular}{|l|l|}
+			0 & \begin{tabular}{|l|l|}
+				\multicolumn{2}{|c|}{object}\\ \hline
+				mode & box \\ \hline
+				action & add \\ \hline
+				id  & box1 \\ \hline
+				property & \url{http://ex.com/prop3}\\ \hline
+				value & somevalue\\ \hline
+				... & ...
+			\end{tabular} \\ \hline
+			
+			1 & \begin{tabular}{|l|l|}
+				\multicolumn{2}{|c|}{object}\\ \hline
+				action & remove \\ \hline
+				id & box0 \\ 
+			\end{tabular} \\ \hline
+			... & ...\\ 
+		\end{tabular}
+	\end{tabular}
+	\\ \hline
+\end{tabular}
+}\end{center}
+\vspace{1ex}
+Es können also beliebig viele Filter oder shown Properties gleichzeitig hinzugefügt oder entfernt werden. Intern werden diese gespeichert, indem zu einem Array ein Eintrag hinzugefügt wird, der zum einen aus den Konfigurationsanweisungen besteht und zum anderen aus Referenzen auf die jeweiligen Query2-Bestandteile. Dies ermöglicht es, diese Komponenten später wieder zu entfernen. Die JSON Kodierung der Konfigurationsanweisungen erleichtert die Kommunikation mit den JavaScript-gesteuerten GUI-Elementen.\\
+\subsubsection{Integration mit dem show-Properties-Modul}
+Eine Property ist ein Prädikat, das in Aussagen (Tripeln) über Elemente der Liste genutzt wurde:\\
+{\centering \verb+ex:someobj ex:prop ex:other+}\\ 
+Wenn \verb+someobj+ in unserer Liste ist, wird \verb+prop+ als mögliche Property im show-Proper\-ties-Modul angezeigt. Ein Property kann auch \emph{invers} sein; dies bedeutet, dass die Aussage\\
+{\centering \verb+ex:other ex:prop ex:someobj+}\\
+interpretiert wird als inverse Eigenschaft \verb+prop+$^{-1}$ der Resource \verb+someobj+ mit dem Wert \verb+other+. \\
+Klickt ein User auf eine Property (oder zieht diese per Drag\&Drop auf die Liste), übermittelt das show-Properties-Modul dies im instancesconfig-Parameter. Der \texttt{List\-Set\-up\-Hel\-per} wird auf dem \texttt{OntoWiki\_Model\_Instances}-Objekt  die \texttt{add\-ShownPro\-per\-ty}-Me\-tho\-de entsprechend aufrufen.
+
+\subsubsection{Integration mit dem Filter-Modul}
+Filter sind Einschränkungen bezüglich einer Eigenschaft, die die Menge der Instanzen dahin reduziert, dass alle Instanzen diese Bedingung erfüllen müssen. Die Verwaltung von Filtern geschieht auch im \texttt{OntoWiki\_Model\_Instances}-Objekt. Die GUI dazu ist das Filter-Modul. Für die Angabe von Filtern im instancesconfig-Parameter gibt es verschiedene Formate, die mittels des \texttt{mode}-Parameters angekündigt werden. In der folgenden Tabelle möchte ich diese Modi und ihre Auswirkungen auf den verwalteten Query zeigen:\\
+\begin{center}
+{ \small
+\begin{longtable}{l|l|l|l}
+\textbf{mode} & \textbf{Parameter} & \textbf{Methode}\footnote{Die Methode, die der ListSetupHelper auf dem \texttt{OntoWiki\_Model\_Instances}-Objekt aufrufen wird. Die Argumente, die der Funktion übergeben werden, sind die Parameter in der 2. Spalte.} & \textbf{Query}\footnote{Die Veränderungen die am Query vorgenommen werden; also welche Tripel und Filter hinzugefügt werden. Diese Spalte ist eher beispielhaft zu verstehen.} \\ \hline 
+\multirow{11}{*}{box} & id  & \multirow{11}{*}{addFilter} & filter = 'contains':\\ 
+& property & & \verb+  ?resourceUri <property> ?value+\\
+& isInverse & & \verb+  FILTER(REGEX("value1",?value))+\\
+& propertyLabel & & filter = 'equals':\\
+& filter & & \verb+  ?resourceUri <property> <value1>+\\
+& value1 & & filter = 'bound'\\
+& value2 & & \verb+  ?resourceUri <property> ?value+\\
+& valuetype & & \verb+  FILTER(BOUND(?value))+\\
+& literaltype & & filter = 'larger'\\
+& hidden & & \verb+  ?resourceUri <property> ?value+\\
+& negate & & \verb+  FILTER(?value > value1)+\\\hline 
+\multirow{2}{*}{search} & \multirow{2}{*}{text} & \multirow{2}{*}{addSearchFilter} & \verb+?resourceUri ?property ?value+ \\
+ & & & \verb+FILTER(REGEX('text', ?value))+\\ \hline 
+type & classUri & addTypeFilter & \verb+?resourceUri a <classUri>+\\ \hline 
+cnav & cnav-json & addTripleFilter & [wird vom NavigationHelper bestimmt]
+\end{longtable}
+} \end{center}
+Die Änderungen am Query, die die \texttt{addFilter}-Methode erzeugt, sind kein einfaches Template wie bei \texttt{addSearchFilter} und \texttt{addTypeFilter}. Das Ergebnis hängt von der Kombination des isInverse-Parameters, des filter-Parameters, des Typs des Values und des negate-Parameters ab. Der isInverse-Parameter betrifft den Property, der gefiltert wird, und verhält sich wie bei shown Properties. Der Filter-Parameter gibt den Filter-Typ an, wie in der obigen Tabelle angedeutet. Es gibt darüber hinaus noch den between-Filter und den smaller-Filter; weitere Filter sind denkbar. Der negate-Parameter negiert die Bedingung: Aus einem larger wird beispielsweise ein smaller; aus \texttt{REGEX(x,y)} wird \texttt{!REGEX(x,y)} etc. Der Typ des Values kann URI, plain-literal, typed-literal oder language-tagged-literal sein und wird über die Parameter valuetype und literaltype konfiguriert. Alle möglichen Kombinationen dieser Fälle werden in der \texttt{addFilter}-Methode in eine äquivalente Repräsention als Folge von \texttt{Query2\_Tripel} und \texttt{Query2\_Filter}-Ausdrücken umgeformt und dem Query hinzugefügt. Über die angegebene \texttt{id} kann der Filter später mit der \texttt{removeFilter}-Methode wieder entfernt werden.\\
+Als GUI für diese Methode habe ich das Filter-Modul entwickelt:\
+\begin{figure}[!ht]
+  \centering
+  \includegraphics{files/filterbox.eps}
+  \caption{Das Filter Modul}
+  \label{img:filterbox}
+\end{figure}\\
+Dort ist es möglich, für alle möglichen Eigenschaften der aktuellen Instanzen (1) die möglichen Werte anzeigen zu lassen und darüber einzuschränken (2), über eine Checkbox die Negation des Filters zu aktivieren (3) oder einen anderen Filter-Typ zu wählen (4), der u.U. einen einzutragenden Wert erwartet (5). Nachdem der Filter angewendet wurde, wird er in der Filterbox angezeigt (6) und ist dort auch entfernbar.\\ 
+\subsubsection{Integration mit dem Tagging-Modul}
+Das Tagging-Modul kann Tags visualisieren, die Elemente der Liste besitzen. Dies geschieht über eine sogenannte Tag-Cloud, die mögliche Werte für das Tag-Prädikat\footnote{\url{http://www.holygoat.co.uk/owl/redwood/0.1/tags/taggedWithTag}} anzeigt. Je häufiger der Wert vorkommt desto größer wird er. Teil meiner Aufgabe war es, andere Properties hier wählbar zu machen. Es ist nun möglich, beliebige shown-Properties per Drag\&Drop hier hinzuzufügen.\\
+Des Weiteren aktiviert ein Klick auf ein Tag einen Filter, der nur damit getaggte Resourcen anzeigt. Dieser Filter soll gleichzeitig Beispiel für den \texttt{mode} box (siehe oben) sein. Das Tagging-Modul wird folgenden instancesconfig-Parameter übertragen während die Seite neu geladen wird:\\
+\begin{center}
+{ \sffamily \small
+\begin{tabular}{|l|l|}
+	\hline
+	 filter & \begin{tabular}{|l|l}
+		array & \begin{tabular}{|l|l|}
+			0 & \begin{tabular}{|l|l|}
+				\multicolumn{2}{|c|}{object}\\ \hline
+				mode & box \\ \hline
+				action & add \\ \hline
+				id  & taggingfilter1 \\ \hline
+				property & \url{http://example.com/taggedWith}\\ \hline
+				value1 & \url{http://example.com/someTag}\\ \hline
+				valuetype & uri\\ \hline
+				negate & false\\ \hline
+				hidden & true\\ \hline
+				isInverse & false
+			\end{tabular} \\ 
+		\end{tabular}
+	\end{tabular}
+	\\ \hline
+\end{tabular}
+}\end{center}
+\subsubsection{Integration mit dem NavigationController}
+Der \texttt{Na\-vi\-ga\-tion-Controller}, der parallel von Tim Ermilov und Sebastian Tramp entwickelt wurde, bietet Nutzern komfortablen Zugriff auf beliebige Hierarchien von Klassen oder anderen konfigurierbaren Konzepten. Die Integration mit der Listenansicht erfolgt auch wieder über den instancesconfig-Parameter; dieser enthält ein Feld \texttt{cnav}, das der \texttt{ListSetupHelper} als Argument an die Methode \texttt{Navigation\-Hel\-per::get\-Instances\-Triples} geben wird, die gewisse filternde Query2-Objekte zurückgibt, die die Liste auf den geünschten Typ einschränken. Diese Objekte werden mit der \texttt{addTripleFilter}-Methode zum Query hinzugefügt. Die inhaltliche Kontrolle behält also die Navigations-Kom\-po\-nen\-te.
+\subsubsection{Weitere Integration in OntoWiki}
+Darüber hinaus wurde die Instanzliste noch mit der Suchfunktion und mit dem \emph{more-Link} verknüpft: Die Suchfunktion übergibt im instancesconfig-Parameter (mit \texttt{mode = search}) den Suchstring an das \texttt{OntoWiki\_Model\_Instances}-Objekt. Dieses holt sich dann aus dem Datenbank-Adapter einen Suchfilter, der die Instanzliste dahingehend einschränkt, dass nur noch Instanzen angezeigt werden, die einen Property-Wert haben, der den Suchwert enthält. Der Datenbank-Adapter gibt also --- je nach eingesetzter Datenbank --- optimierte SPARQL-Filter-Ausdrücke zurück. Bei Virtuoso wird dort beispielsweise die \texttt{bif:contains}-Funktion genutzt; bei EfZendDB die gewöhnliche \texttt{REGEX}-Funktion.\\
+Der sogenannte \emph{more-Link} wurde auf der Einzel-Instanz-Ansichtsseite dazu genutzt, bei Eigenschaften, die mehr als fünf Werte haben, die Anzeige zwar zu limitieren aber dem Nutzer die Möglichkeit zu geben, diese Werte anzusehen.\\
+Vorher wurde dies über einen "`rohen"' Query gemacht, dessen Ergebnis im OntoWiki-Query-Editor angezeigt wurde. Dies war eher eine Behelfslösung und so wurde diese Anzeige nun als Filter auf einer Liste realisiert: In Abbildung \ref{fig:more} hat die Resource \textsf{node} die Property \textsf{prop} mit den Werten \textsf{node2} und \textsf{node3}. Interpretiert man dies nun umgekehrt als Liste mit den Elementen \textsf{node2} und \textsf{node3}, die beide den Wert \textsf{node} die Property \textsf{prop$^{-1}$} haben, lässt sich dies als Filter definieren.\\
+\begin{figure}[htbp]
+\sffamily
+\begin{tikzpicture}[->,scale=1, auto,swap]
+\node[vertex] (node) at (0,1) {node};
+\node[vertex] (node2) at (3,0) {node2};
+\node[vertex] (node3) at (3,2) {node3};
+\draw [->,shorten <=1pt,>=angle 90](node) -- node {prop} (node2);
+\draw [->,shorten <=1pt,>=angle 90](node) -- node {prop} (node3);
+\draw [->, double, shorten <=1pt,>=angle 90,thick](4,1) -- (6,1);
+\node[vertex] (node) at (10,1) {node};
+\node[vertex] (node2) at (7,0) {node2};
+\node[vertex] (node3) at (7,2) {node3};
+\draw [->,shorten <=1pt,>=angle 90](node2) -- node {prop$^{-1}$} (node);
+\draw [->,shorten <=1pt,>=angle 90](node3) -- node {prop$^{-1}$} (node);
+\end{tikzpicture}
+\caption{Interpretation von Werten als gefilterte Liste}
+\label{fig:more}
+\end{figure}
+Ähnlich verhält es sich mit dem Instances-Linking-Here-Modul: Dieses zeigt, welche Instanzen über welche Properties auf die aktuelle Instanz zeigen. Somit ist dieses Property aus "`Persepektive der Liste"' ein inverses Property. Nach den gerade gezeigten Überlegungen kann die Liste der Linking-Here-Instanzen also auch über einen Filter erzeugt werden. Die doppelte invertierung ergibt eine normale Property.
+\vfill
+\newpage
