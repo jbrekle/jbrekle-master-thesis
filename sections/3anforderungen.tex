@@ -1,6 +1,6 @@
 \section{Requirements}
 \label{sec:requirements}
-Als Anforderung wird eine Bedingung oder Eigenschaft bezeichnet, die ein System benötigt, um ein Problem zu lösen oder um einem Standard zu genügen (vgl. IEEE Std 610.12-1990). Drei Arten von Anforderungen sind funktionale Anforderungen, Qualitätsanforderungen und Rahmenbedingungen (vgl. \cite{young}). In diesem Kapitel werde ich zunächst auf bestehende und neu entstandene Anwendungsfälle eingehen und die zugrundeliegenden Anforderungen aufzeigen. Danach möchte ich im Abschnitt \ref{sec:req} einige Qualitätsanforderungen erläutern.
+Als Anforderung wird eine Bedingung oder Eigenschaft bezeichnet, die ein System benötigt, um ein Problem zu lösen oder um einem Standard zu genügen (vgl. IEEE Std 610.12-1990). Drei Arten von Anforderungen sind funktionale Anforderungen, Qualitätsanforderungen und Rahmenbedingungen (vgl. \cite{young}). 
 
 \subsection{Problem Description}
 \label{sec:problem}
@@ -60,11 +60,11 @@ The resolution of template calls at extraction time slows the process down notab
     All the data extracted by our approach falls under the same licences. 
   \item \textbf{Big and growing}\\
     English contains 2,9M pages, French 2,1M, Chinese 1,2M, German 0,2 M.
-    The overall size (12M pages) of \wik is in the same order of magnitude as Wikipedia's size (20M pages)\footnote{\url{http://meta.wikimedia.org/wiki/Template:Wikimedia_Growth}}. 
+    The overall size (12M pages) of \wik is in the same order of magnitude as Wiki\-pedia's size (20M pages)\footnote{\url{http://meta.wikimedia.org/wiki/Template:Wikimedia_Growth}}. 
     The number of edits per month in the English \wik varies between 100k and 1M --- with an average of 200k for 2012 so far. 
     The number of pages grows --- in the English \wik with approx. 1k per day in 2012.\footnote{\url{http://stats.wikimedia.org/wiktionary/EN/TablesWikipediaEN.htm}}
 \end{compactitem}
-
+\vspace{0.5cm}
 The most important resource to understand how \wik is organized are the \textit{Entry Layout Explained} (ELE) help pages.
 As described above, a page is divided into sections that separate languages, part of speech etc. 
 The table of content on the top of each page also gives an overview of the hierarchical structure. 
@@ -73,7 +73,7 @@ The schema for this tree is restricted by the ELE guidelines\footnote{For Englis
 The entities illustrated in Figure~\ref{fig:example} of the ER diagram will be called \textit{block} from now on. 
 The schema can differ between WLEs and normally evolves over time.
 
-\begin{figure}[tb]
+\begin{figure}[htb]
 \centering
 \includegraphics[width=0.9\textwidth]{./images/example-page.png}
 \vspace{0.3cm}
@@ -90,6 +90,21 @@ To fully synchronize a knowledge base with a community-driven source, one needs 
 MediaWiki was designed to appeal to non-technical editors and abstains from intensive error checking as well as formally following a grammar --- the community gives itself just layout guidelines. 
 One will encounter fuzzy modelling and unexpected information. 
 Editors often see no problem with such "noise" as long as the page's visual rendering is acceptable.  
-Overall, the main challenges can be summed up as (1) the constant and frequent changes to data \textit{and schema}, (2) the heterogeneity in WLE schemas and (3) the human-centric nature of a wiki. 
+Overall, the issues to face can be summed up as 
+\begin{enumerate}
+\item the constant and frequent changes to data \textit{and schema},
+\item the heterogeneity in WLE schemas and
+\item the human-centric nature of a wiki.
+\end{enumerate}  
+From perspective of requirements engineering, they result in a number of requirements, that do not easily fit together. Figure \ref{fig:requirements} illustrates the different requirements.
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.4\textwidth]{../images/requirements}
+\caption{Competing requirements in wiki scale data extraction}
+\label{fig:requirements}
+\end{figure}
+The requirement "Expressiveness" is the sum of all functional requirements. The other two are non-functional as they regard the long term sustainability of the development process.
+Approaches with hard coded algorithms mostly cover only the first requirement. If a modular architecture is used, it might be easy to cover the "Flexibility to new WLE"; a extractor for each WLE might be hard coded. Although it might be arguable whether the growing code base stays maintainable, with sufficient effort of software developers, such an approach theoretically could scale. However development costs could be reduced drastically if the extraction is maintained by users. The two non-functional requirements conflict with expressiveness as they are implemented with a declarative pattern in our case (and I argue that it is essential to do so, because only a declarative approach can hide the complexity). The more feature the declarative language supports, the harder it becomes for non experts to use it. In section \ref{sec:implementation} it will be shown which trade off is chosen. 
+
 
 \newpage
