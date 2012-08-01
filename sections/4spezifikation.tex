@@ -46,7 +46,7 @@ The \wik extractor is invoked by the DBpedia framework to handle a page.
 It uses a language-specific configuration file, that has to be tailored to match the WLE's ELE guidelines to interpret the page, to extract the desired information. 
 At first, the resulting triples still adhere to a language-specific schema, that directly reflects the configured layout of the WLE. 
 A generic lossless transformation and annotation using the \lemon vocabulary is then applied to enforce a global schema and reduce semantic heterogeneity. 
-Afterwards the triples are returned to the DBpedia frameworks, which takes care of the serialization and (optionally) the synchronization with a triple store via DBpedia Live\footnote{\url{http://live.dbpedia.org/live}}.
+Afterwards the triples are returned to the DBpedia frameworks, which takes care of the serialization and (optionally) the synchronization with a triple store via DBpedia Live\footnote{\url{http://live.dbpedia.org/live}} \cite{dbpedia_live_2012}.
 %TODO optional cite live
 The process of interpreting the declarative wrapper is explained in more detailed in Figure~\ref{fig:extractor}.
 
@@ -57,7 +57,11 @@ The process of interpreting the declarative wrapper is explained in more detaile
 \label{fig:extractor}
 \end{figure}
 
-
-
+The actual algorithm is quite complex and will be explained in more detail in the next section. What is important is, that separation in three phases: 
+\begin{itemize}
+\item preprocessing to skip pages that dont represent a lexical word
+\item the actual extraction with the three steps of analyzing the page structure, matching templates and generating triple from the result
+\item postprocessing to normalize schemata and polishing the output
+\end{itemize}
 \vfill
 \newpage
