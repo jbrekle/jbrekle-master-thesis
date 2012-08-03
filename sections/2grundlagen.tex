@@ -303,6 +303,51 @@ films, music, genes, drugs, books, and scientific publications." \cite{dbpedia_j
 "\cite{dbpedia_iswc}
 DBpedia is one of the most successful semantic web projects and has become a central linking hub of Linked Data.
 
+The architecture of DBpedia centers around so called \textit{Extractors}. The most important extractor is the infobox extractor; it tries to interpret tabular data that can be found on many Wikipedia pages.
+
+For example the page of Leipzig\footnoteUrl{http://en.wikipedia.org/wiki/Leipzig}, contains a table on the right, that presents some essential facts and statistics:
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{./images/leipzig-full}
+\caption{Wikipedia article about Leipzig with infobox}
+\label{fig:leipzig-full}
+\end{figure}
+
+The underlying wikitext that creates the infobox on the right looks like this:
+
+\begin{lstlisting}[style=wikitext]
+{{Infobox German location
+|Art                = Stadt
+|image_flag         = Flag of Leipzig.svg
+|Wappen             = Coat of arms of Leipzig.svg
+|lat_deg            = 51 |lat_min = 20 | lat_sec=0
+|lon_deg            = 12 |lon_min = 23 | lon_sec=0
+|Lageplan           = Lage der kreisfreien Stadt Leipzig in Deutschland.png
+|Bundesland         = Sachsen
+|Regierungsbezirk   = Leipzig
+|Kreis              = urban district
+|Höhe               =
+|image_photo        = AUGUSTUSPLATZ-014.jpg
+|image_caption      = View over [[Augustusplatz]]
+|Fläche             = 297.60
+|Gemeindeschlüssel  = 14713000
+|Einwohner          = 528049
+|Stand              = 2011-11-39
+|pop_urban          = 996100
+|pop_metro          = 3500000
+|PLZ                = 04001-04357
+|Vorwahl            = 0341
+|Kfz                = L
+|Website            = [http://www.leipzig.de/ www.leipzig.de]
+|Bürgermeister      = Burkhard Jung
+|Bürgermeistertitel = Oberbürgermeister
+|Partei             = [[Social Democratic Party of Germany|SPD]]
+}}
+\end{lstlisting}
+
+This information is already structured and by mapping the keys of the given properties to a RDF vocabulary it is simple to extract triples. The inner workings shall not be presented here. An important sub project of DBpedia is the mappings wiki\footnoteUrl{http://mappings.dbpedia.org/}, it provides for a community maintained repository of those mappings from template argument keys to RDF properties.
+
 \subsection{Related Work}\label{relatedWork}
 %\subsection{Comparison of Wiktionary extraction approaches}
 In the last five years, the importance of \wik as a lexical-semantic resource has been examined by multiple studies.
