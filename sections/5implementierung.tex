@@ -1,9 +1,10 @@
 \section{Design and Implementation}
 \label{sec:implementation}
-In the following I will present a bunch of noteworthy implementation details.
+In the following I will present a bunch of noteworthy implementation details. First of all, the implementation is done in \textit{Scala\footnoteUrl{http://www.scala-lang.org/}} (because the DBpedia extraction framework is written in Scala as well), but by the nature of Scala, extensions can also be written in Java or any other JVM language. 
+The source code is available via the official DBpedia Mercurial repository\footnoteUrl{http://dbpedia.hg.sourceforge.net/hgweb/dbpedia/extraction_framework/} in the \texttt{wiktionary} branch.
 
 \subsection{Extraction Templates}\label{sec:extpl}
-As mentioned in Section~\ref{sec:wiktionary}, we define \textit{block} as the part of the hierarchical page that is responsible for a certain entity in the extracted RDF graph. 
+As mentioned in Section~\ref{sec:wiktionary}, we define a \textit{block} as the part of the hierarchical page that is responsible for a certain entity in the extracted RDF graph. 
 For each \textit{block}, there can be declarations on how to process the page on that level.
 This is done by so called \textit{extraction templates} (called \textit{ET}; not to be confused with the templates of \textit{wikitext}).
 Each possible section in the \wik page layout (i.e. each linguistic property) has an ET configured (explained in detail below). 
@@ -20,9 +21,9 @@ Since the goal is to emit a triple for each link per line, we can write the ET i
 (* [[\$target]]
 )+
 \end{lstlisting}
-Lets analyse what features are available to build ET:\newline
+Lets analyse what features are available to build ET.\newline
 \textbf{Template matching:}
-To match a template against a page, both are compared node by node:
+To match a template against a page, the VarBinder is employed by the Extractor. Page and template are compared node by node:
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.4\textwidth]{../images/matching}
@@ -465,8 +466,30 @@ This value can then be used to construct URIs that reuse this as a prefix:
 \end{lstlisting}
 The object URI could be \url{http://some.ns/Haus-German-Noun} for example. 
 But furthermore, if this RT is used within an \textit{indicator template}, the need arises to indicate the start of a new block. 
-When I introduced \textit{indicator templates} above --- i lied: not the successful match of template triggers the state change, but only the successfull rendering of a triple with \texttt{oNewBlock} option. 
-The rational is, that to trigger that transition, the new URI has to be known --- and there is no simple way to determine it from a set of unremarkable triples that are produced by the indicator template.
-Of couse the \texttt{\$block} variable can be used independently from the \texttt{oNewBlock} option in ordinary RT.
+When I introduced \textit{indicator templates} above --- i lied: not the successful match of template triggers the state change, but only the successful rendering of its result template, including a triple with the \texttt{oNewBlock} option.
+The rational is, that to trigger that transition, the new block URI has to be known --- and there is no simple way to determine it from a set of unremarkable triples that are produced by the indicator template.
+Of course the \texttt{\$block} variable can be used independently from the \texttt{oNewBlock} option in ordinary RT.
+
+\subsection{Utility Tools}
+To provide a complete deployment environment for the Wiktionary RDF dataset, it is also necessary to cater for tools to \textit{load} the data into a database. We chose \textit{Virtuoso} for this purpose and I created a set of tools that relate to data loading (and cleaning).
+
+\begin{footnotesize}
+\begin{tabular}{|p{0.1\textwidth}|p{0.1\textwidth}|p{0.1\textwidth}|p{0.6\textwidth}|}
+\hline \textbf{script} & \textbf{parameters} & \textbf{result} & \textbf{note} \\ 
+\hline splitrapper & <nt-file> & cleaned nt-file & splits a nt-file into parts, small enough for \textit{rapper} (part of the libraptor utils), to process it (the current implementation of rapper has a limit at 2GB). Applies rapper to each part to clean common encoding problems and concatenates the cleaned parts back together \\ 
+\hline virtuoso-load & <init> <lc>+ & loaded language dumps in Virtuoso & init (either "true" or "false") specifies whether the database should be purged first. Then for each language code, the corresponding nt-file is loaded into Virtuoso, while setting up the graph layout accordingly. \\
+\hline publish-download & <lc>+ & nt-files uploaded &  expects passwordless \texttt{ssh} access to the DBpedia download server, \texttt{gzip}s them, uses \texttt{scp} to upload the files and names them with the current date.\\
+\hline make\_jarzip & - & executable jar file of the extractor & creates a zip file that contains a executable jar of the wiktionary source code, containing all dependencies (to the framework and to configuration resources). Enables the easy distribution of the software for people without Mercurial knowledge.\\
+\hline statistics & <nt-file> & printed statistics & generates statistics about a nt-file (e.g. triple count, property usage, sense counts)\\
+\hline translation-extract & - & translations CSV file & retrieves all translation pairs from a SPARQL endpoint and serializes them in a fixed CSV format. The translation source word is disambiguated by language, part of speech and sense.\\
+\hline translation-loader.sql & - &  & execute from SQL console to load CSV file into a fixed SQL table \\
+\hline 
+\end{tabular} 
+\end{footnotesize}
+
+The first four are used for deployment, the statistics tool is informative and the last two are descended from a specific use case that can also serve as a best practice for similar tasks. The task in this case was to export translations to a relational schema. I choose to do it via CSV as an intermediate step, as this format is both easy to serialize and easy to load from SQL. If the need arises to do something similar (for example with synonyms), this script is easy to adapt.
+
+\subsection{Graph Layout}
+
 \newpage
 

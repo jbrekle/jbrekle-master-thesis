@@ -47,7 +47,6 @@ It uses a language-specific configuration file, that has to be tailored to match
 At first, the resulting triples still adhere to a language-specific schema, that directly reflects the configured layout of the WLE. 
 A generic lossless transformation and annotation using the \lemon vocabulary is then applied to enforce a global schema and reduce semantic heterogeneity. 
 Afterwards the triples are returned to the DBpedia frameworks, which takes care of the serialization and (optionally) the synchronization with a triple store via DBpedia Live\footnote{\url{http://live.dbpedia.org/live}} \cite{dbpedia_live_2012}.
-%TODO optional cite live
 The process of interpreting the declarative wrapper is explained in more detailed in Figure~\ref{fig:extractor}.
 
 \begin{figure}[tb]
@@ -59,9 +58,11 @@ The process of interpreting the declarative wrapper is explained in more detaile
 
 The actual algorithm is quite complex and will be explained in more detail in the next section. What is important is, that separation in three phases: 
 \begin{itemize}
-\item preprocessing to skip pages that dont represent a lexical word
+\item preprocessing to skip pages that do not represent a lexical word
 \item the actual extraction with the three steps of analyzing the page structure, matching templates and generating triple from the result
 \item postprocessing to normalize schemata and polishing the output
 \end{itemize}
+
+The extractor itself is split into two components: a generic template matcher, that takes a (possibly partially consumed) wiki page and a template. It then tries to \textit{bind} the variable parts of the template to actual content from the page. When it a template is successfully matched, the matched part of the page is consumed --- removed from the page. This component is called the \texttt{VarBinder}. The VarBinder is a stateless tool that has no knowledge of the overall page layout 
 \vfill
 \newpage

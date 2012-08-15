@@ -1,5 +1,25 @@
 \section{Conclusion}
-\subsection{Discussion and Future Work}
+\subsection{Vision}
+\textit{Making unstructured sources machine-readable creates feedback loops.}
+The argument that extracting structured data from an open data source and making it freely available in turn encourages users of the extracted data to contribute to the unstructured source, seems reasonable. It is firstly not easily possible to continuously apply changes to the automatically extracted data when the source and the configuration changes arbitrarily. One could imagine a kind of a patch queue, but also how hard it is to maintain it. On the other hand, for humans it is much easier to curate a wiki. The co-evolution of ontologies is still an open research problem.
+Back to the claim: Users of the RDF version of Wiktionary could be NLP researchers or companies. Some of them have considerable human resources, that maintain internal databases of linguistic knowledge. And some are willing to publish their data and integrate it with existing sources; but the clear incentive is to \textit{get the data back again} --- enriched. With an mature extraction infrastructure (that can be deployed autonomously by adopters or centrally by us at the same time), it becomes reasonable for such third parties to contribute.
+This increase in participation besides improving the source, also illustrates the advantages of machine readable data to common Wiktionarians. Which are in turn more motivated to cooperate. Such considerations are fundamental; without community interaction and mutual benefits, extraction from community edited sources becomes dull scraping. There is an implicit requirement for a social effort to successfully transfer the desired properties of the source to the extracted data.
+Such a positive effect from DBpedia supported the current \textit{Wikidata}\footnote{\url{http://meta.wikimedia.org/wiki/Wikidata}} project.
+
+\subsection{Suggested changes to Wiktionary}
+Although it's hard to persuade the community of far-reaching changes, we want to conclude how \wik can increase its data quality and enable better extraction.
+\begin{compactitem}
+\item \textbf{Homogenize Entry Layout across all WLE's.}
+\item \textbf{Use anchors to markup senses:}
+	This implies creating URIs for senses.
+	These can then be used to be more specific when referencing a \textit{word} from another article. 
+	This would greatly benefit the evaluation of automatic anchoring approaches like in \cite{meyer_2011b}.
+\item \textbf{Word forms:}
+	The notion of word forms (e.g. declensions or conjugations) is not consistent across articles.
+	They are hard to extract and often not given.
+\end{compactitem}
+
+\subsection{Discussion}
 Our main contributions are (1) an extremely flexible extraction from \wik, with simple adaption to new Wiktionaries and changes via a declarative configuration. 
 By doing so, we are (2) provisioning a linguistic knowledge base with unprecedented detail and coverage. 
 The DBpedia project provides (3) a mature, reusable infrastructure including a public Linked Data service and SPARQL endpoint. All resources related to our \wik extraction, such as source-code, extraction results, pointers to applications etc. are available from our project page\footnote{\url{http://wiktionary.dbpedia.org}}.
@@ -19,7 +39,9 @@ To enable the crowd-sourcing of the extractor configuration, an intuitive web in
 Therefore a JavaScript based WYSIWYG XML editor seems useful. 
 There are various implementations, which can be easily adapted.\\
 \textbf{Linking:}
-Finally, an alignment with existing linguistic resources like WordNet and general ontologies like YAGO or DBpedia is essential. That way \wik will allow for the interoperability across a multilingual semantic web.
+Finally, an alignment with existing linguistic resources like WordNet and general ontologies like YAGO or DBpedia is essential. That way \wik will allow for the interoperability across a multilingual semantic web.\\
+\textbf{Quality Assessment:}
+Analogously to DBpedia and 
 
 \subsection{Open Research Questions}
 \subsubsection{Publishing Lexica as Linked Data}
