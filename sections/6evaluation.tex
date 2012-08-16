@@ -4,14 +4,60 @@ The extraction has been conducted as a proof-of-concept on four major WLE:
 The English, French, Russian and German \wik.
 The datasets combined contain more than 100 million facts\footnote{SPARQL: \texttt{SELECT COUNT(*) WHERE {?s ?p ?o}}} about 5 million lexical words\footnote{SPARQL: \texttt{SELECT COUNT(?s) WHERE {?s a lemon:LexicalEntry}}} .
 The data is available as N-Triples dumps\footnote{\url{http://downloads.dbpedia.org/wiktionary}}, Linked Data\footnote{for example \url{http://wiktionary.dbpedia.org/resource/dog}}, via the \emph{Virtuoso Faceted Browser}\footnote{\url{http://wiktionary.dbpedia.org/fct}} or a SPARQL endpoint\footnote{\url{http://wiktionary.dbpedia.org/sparql}}.
+The has extraction been conducted on August 15th 2012, and the used XML dumps were the latest as of that day\footnote{In detail: en - 08/12, fr - 08/12, ru - 08/06, de - 08/11}.
 
 \subsection{Example Data}
+Just for reference, I present some sample data. It is extracted from the English Wiktionary entry for \textit{goggles}\footnoteUrl{http://en.wiktionary.org/wiki/googles}:
+\begin{lstlisting}
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix wt: <http://wiktionary.dbpedia.org/terms/>.
+@prefix wr: <http://wiktionary.dbpedia.org/resource/>.
+@prefix dc: <http://purl.org/dc/elements/1.1/>.
+@prefix doap: <http://usefulinc.com/ns/doap#>.
+@prefix lemon: <http://www.monnet-project.eu/lemon#>
 
+wr:goggles doap:creator <http://en.wiktionary.org/w/index.php?title=goggles&action=history> . 
+wr:goggles lemon:sense wr:goggles-English-Noun-1en . 
+wr:goggles rdfs:label "goggles"@en . 
+wr:goggles rdfs:seeAlso <http://ko.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://fi.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://sv.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://io.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://te.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://zh.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://de.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://my.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://pl.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://en.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://ta.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://kn.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://vi.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://fr.wiktionary.org/wiki/goggles> . 
+wr:goggles rdfs:seeAlso <http://et.wiktionary.org/wiki/goggles> . 
+wr:goggles rdf:type lemon:LexicalEntry . 
+wr:goggles rdf:type wt:LexicalEntity . 
+wr:goggles wt:hasLangUsage wr:goggles-English . 
+wr:goggles-English dc:language wt:English . 
+wr:goggles-English wt:hasPoSUsage wr:goggles-English-Noun . 
+wr:goggles-English wt:hasEtymology "Probably from goggle from the appearance it gives the wearer."@en . 
+wr:goggles-English wt:hasPronunciation "/\u02C8\u0261\u0251.\u0261\u0259lz/"@en . 
+wr:goggles-English-Noun wt:hasPoS wt:Noun . 
+wr:goggles-English-Noun wt:hasSense wr:goggles-English-Noun-1en . 
+wr:goggles-English-Noun-1en dc:language wt:English . 
+wr:goggles-English-Noun-1en wt:hasPoS wt:Noun . 
+wr:goggles-English-Noun-1en rdfs:label "goggles"@en . 
+wr:goggles-English-Noun-1en wt:hasMeaning "Protective eyewear set in a flexible frame to fit snugly against the face."@en . 
+wr:goggles-English-Noun-1en rdf:type lemon:LexicalSense . 
+wr:goggles-English-Noun-1en rdf:type wt:Sense . 
+wr:goggles-English-Noun-1en wt:hasEtymology "Probably from goggle from the appearance it gives the wearer."@en . 
+\end{lstlisting}
 
 \subsection{Quantity Measurement}
 We used some simple counting queries to measure the \textit{dimensions} of the RDF data. This includes number of it entries in the dictionary, or when seen as a graph, the number of edges and vertices or the number of distinct used predicates. 
-
-\begin{threeparttable} 
+\begin{table}[h!]
+\centering
+\caption{Statistical quantity comparison of three \wik extraction result datasets.}
 \begin{tabular}{|l|r|r|r|r|r|r|r|r|}
 \hline \emph{language} & \emph{\#words} & \emph{\#triples} & \emph{\#resources}  & \emph{\#predicates} & \emph{\#senses} \\ 
 \hline \hline \textit{en} & 2,903,933 & 71,230,704 & 33,428,598 & 26 & 966,673 \\ 
@@ -19,42 +65,40 @@ We used some simple counting queries to measure the \textit{dimensions} of the R
 \hline \textit{de} & 204,045 & 6,677,192 & 3,448,052 & 23 & 170,762 \\ 
 \hline 
 \end{tabular}
-\caption{Statistical quantity comparison of three \wik extraction result datasets.}
-\end{threeparttable}
+\end{table}
 
 The statistics show, that the extraction produces a vast amount of data with broad coverage, thus resulting in the largest lexical linked data resource. 
 
 
 \subsection{Quality Measurement}
 The measurement of data quality is a difficult topic, as there is no gold standard --- no optimum to compare with. 
-One could compare with competing approaches, but what if you succeed them? 
+One could compare with competing extractors, but what if you succeed them? 
 When your scope is too different? 
 It is necessary to use absolute measures, either automatically calculated (which can be misleading) or by human rating (which requires substantial effort).
 
-\begin{threeparttable} 
+\begin{table}[h!]
+\centering
+\caption{Statistical quality comparison of three \wik extraction result datasets.}
+\begin{minipage}{\textwidth}
+\centering
 \begin{tabular}{|l|c|c|c|c|}
-\hline language & \emph{t/w}\tnote{a}\hspace{0.15cm} & \emph{\#wws}\tnote{b}\hspace{0.15cm} & \emph{s/wws}\tnote{c}\hspace{0.15cm} & \emph{t/l}\tnote{d}\hspace{0.15cm} \\
+\hline language & \emph{t/w}\footnote{\textit{Triples per word.} The simplest measure of information density.} & \emph{\#wws}\footnote{\textit{Words with senses.} The number of words, that have at least one sense  extracted. 
+An indicator for the ratio of pages for which valuable information could be extracted (but consider stub pages, that are actually empty)} & \emph{s/wws}\footnote{\textit{Senses per word with sense.}} & \emph{t/l}\footnote{\textit{Triples per line.} The number of triples divided by the number of line breaks in the page source (plus one). Averaged across all pages.} \\
 \hline \hline \textit{en} & 24.52 & 708,644 & 1.36 & \\
 \hline \textit{fr} & 15.54 & 628,299 & 1.26 & \\ 
 \hline \textit{de} & 32.72 & 116,622 & 1.46 & \\ 
 \hline 
 \end{tabular} 
-\caption{Statistical quality comparison of three \wik extraction result datasets.}
-\begin{tablenotes}\footnotesize 
-\item[a] \textit{Triples per word.} The simplest measure of information density.
-\item[b] \textit{Words with senses.} The number of words, that have at least one sense  extracted. 
-An indicator for the ratio of pages for which valuable information could be extracted (but consider stub pages, that are actually empty)
-\item[c] \textit{Senses per word with sense.} 
-\item[d] \textit{Triples per line.} The number of triples divided by the number of line breaks in the page source (plus one). 
-Averaged across all pages.
-\end{tablenotes}
-\end{threeparttable}
 
-All presented index numbers are chosen at will, to give some idea about the coverage of the RDF data. 
+\end{minipage}
+
+\end{table}
+
+All presented index numbers are chosen at will, to give \textit{some idea} about the coverage of the RDF data.
 But none is able to indicate the quality of the extraction --- the completeness of the configuration --- on a scale from zero to one. 
 The numbers depend on the quality of the source data (which can not simply be assessed) and not necessarily are normed to one.
-It can be argued, that the last measure, triples per line, may the one most robust against source dependency (the tendency of the measure to vary with the quality of the source, which is desired to be low). 
-It can be argued that this value should (for a perfect extraction configuration) be close to one, because each line should contain some information (which results in a triple). 
+It can be argued, that the last measure, triples per line, may the one most robust against source dependency (the tendency of the measure to vary with the quality of the source is desired to be low). 
+It can be argued that this value should (for a perfect extraction configuration) be close to one or even higher, because each line should contain some information (which results in a triple). 
 There are empty lines and lines that produce multiple triples --- but these lines are rarer and should eliminate each other (also empty lines could be disregarded easily). 
 Therefore any value considerably lower than one, indicates that there are many uninterpreted lines. 
 But again, these measures might be misleading as they are influenced by many unknown factors. 
@@ -74,6 +118,10 @@ He took a few days to get familiar with the topic (and doing his normal work as 
 To fully evaluate this claim we need to wait until the project is picked up in the wild and interview adopters, unfortunately this is not possible within the temporal constraints of this thesis.
 
 \subsection{Limitations}
+There are some limitations to the extractor. Some from the tailoring towards Wiktionary, some from the simple design of the VarBinder. Firstly, the extractor is meant to be as  generic as possible, and should not contain direct assumptions about the page. But the schema of the page is modelled as the mentioned \textit{nested blocks}. They directly reflect the layout of Wiktionary. Nesting describes the separation of one page into hierarchically organized sections --- like the sections of this thesis. This concept is very basic and yet powerful --- most texts fit into it. If the use case does not need nesting, this is fine. But if the layout is fundamentally different --- maybe formats that are not directly text, think of binary formats or similar --- the extractor may be unsuitable. Secondly the complexity of the configuration is limited --- to remain simple. Two examples for limitations: a variable is ended by the node that follows it. Thus this nodes can never be part of that variable. In RegEx there are more powerful options to end capturing groups. Therefore one may encounter situation where this limitation hinders the perfect extraction and requires dirty workarounds (in comparison to RegEx). A second example: if indicator templates (or normal templates as well) are too generic (that is they are not specific enough to only match when they are meant to match), one may end with incorrect data. This is particularly annoying when the actual Wiki layout does not allow to be more specific. For example in the Vietnamese Wiktionary, language sections and part of speech section are indicated (started) with almost the same pattern: \verb+{{-viet-}}+ vs.
+\verb+{{-noun-}}+
+The corresponding indicator template would be: \verb+{{-$lang-}}+ vs. \verb+{{-$pos-}}+. The templates would match both occurrences alike, because they are too generic. The template that is tried to be matched first (the outer one, regarding the nesting) would \textit{steal} all the matches. A (yet dirty) workaround would be to explicitly write all possible variants without using variables. But it would be very verbose. One could also try to enhance the framework, and extend the mapping to support some kind of classification (e.g. all mappings for part of speech tokens are classified "pos") and extend e.g. the \texttt{assertMapped} RT formatting function, to support an additional argument that restricts the classification.
+For reference there is to say, that there are still RDF serialization bugs in DBpedia, that can cause triples to be missing, when they are cleansed by rapper.
 
 
 \newpage

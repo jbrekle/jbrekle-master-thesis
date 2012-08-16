@@ -10,7 +10,7 @@ This is done by so called \textit{extraction templates} (called \textit{ET}; not
 Each possible section in the \wik page layout (i.e. each linguistic property) has an ET configured (explained in detail below). 
 The idea is to provide a declarative and intuitive way to encode \textit{what to extract}.
 For example consider the following page snippet:
-\begin{lstlisting}
+\begin{lstlisting}[style=wikitext]
 ===Synonyms===
 * [[building]]
 * [[company]]
@@ -56,8 +56,9 @@ Delimited by \texttt{(} \ldots \texttt{)} and succeeded with one of three modifi
 \item \texttt{+} for \textit{1..n} matches and 
 \item \texttt{?} for \textit{0..1} matches.
 \end{compactitem}
-How do variables relate to repetitions? If a variable is used in a repetition and bound twice, it doubles the number of varbindings. 
-Variables outside the repetition are then duplicated. Formalized: the flattened version of the (directed) \textit{binding tree} is the \textit{set of all paths} starting at the root.
+To implement repetitions, the VarBinder extracts the nodes from within the brackets, treats them as a subtemplate and simply tries to match the subtemplate multiple times against the page. It stops if either the maximum number of repetitions is reached (only for \texttt{ ?}) or the subtemplate does not match any more. Thus it expands the repetition as far as possible.
+How do variables relate to subtemplate? If a variable is used in a repetition and bound twice, it doubles the number of varbindings. 
+Variables outside the subtemplate are then duplicated. Formalized: the flattened version of the (directed) \textit{binding tree} is the \textit{set of all paths} starting at the root.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../images/varlist}
@@ -144,14 +145,14 @@ Section~\ref{sec:functions} shows how this mapping is used.
 \subsection{Reference Matching}\label{sec:matching}
 A \wik specific requirement is the resolution of intra-page references: All Wiktionaries use \textit{some} way to refer to parts of the traits of the word. 
 For example on the page \textit{house} at first senses are defined:
-\begin{lstlisting}[basicstyle=\tiny\ttfamily]
+\begin{lstlisting}[style=wikitext]
 # A structure serving as an [[abode]] of human beings.
 # {{politics}} A deliberative assembly forming a component of a legislature, or, more rarely, the room or building in which such an assembly normally meets.
 # [[house music|House music]].
 \end{lstlisting}
 Later on relations to other words are noted --- but \textit{in context} of a sense. 
 For example house \textit{in context} of \textit{abode} has the translation \textit{Haus} in German. So the following notion is used:
-\begin{lstlisting}[basicstyle=\tiny\ttfamily]
+\begin{lstlisting}[style=wikitext]
 ====Translations====
 {{trans-top|abode}}
 ...
@@ -476,13 +477,13 @@ To provide a complete deployment environment for the Wiktionary RDF dataset, it 
 \begin{footnotesize}
 \begin{tabular}{|p{0.1\textwidth}|p{0.1\textwidth}|p{0.1\textwidth}|p{0.6\textwidth}|}
 \hline \textbf{script} & \textbf{parameters} & \textbf{result} & \textbf{note} \\ 
-\hline splitrapper & <nt-file> & cleaned nt-file & splits a nt-file into parts, small enough for \textit{rapper} (part of the libraptor utils), to process it (the current implementation of rapper has a limit at 2GB). Applies rapper to each part to clean common encoding problems and concatenates the cleaned parts back together \\ 
+\hline prepare & <lc> & cleaned nt-file & Applies \texttt{rapper} to the nt-file of the language code to clean common encoding problems, generates statistics and \texttt{bzip}'s the file \\ 
 \hline virtuoso-load & <init> <lc>+ & loaded language dumps in Virtuoso & init (either "true" or "false") specifies whether the database should be purged first. Then for each language code, the corresponding nt-file is loaded into Virtuoso, while setting up the graph layout accordingly. \\
 \hline publish-download & <lc>+ & nt-files uploaded &  expects passwordless \texttt{ssh} access to the DBpedia download server, \texttt{gzip}s them, uses \texttt{scp} to upload the files and names them with the current date.\\
-\hline make\_jarzip & - & executable jar file of the extractor & creates a zip file that contains a executable jar of the wiktionary source code, containing all dependencies (to the framework and to configuration resources). Enables the easy distribution of the software for people without Mercurial knowledge.\\
+\hline make\_jarzip & - & executable jar file of the extractor & creates a zip file that contains a executable jar of the wiktionary source code, containing all dependencies (to the framework and to cofiguration resources). Enables the easy distribution of the software for people without Mercurial knowledge.\\
 \hline statistics & <nt-file> & printed statistics & generates statistics about a nt-file (e.g. triple count, property usage, sense counts)\\
 \hline translation-extract & - & translations CSV file & retrieves all translation pairs from a SPARQL endpoint and serializes them in a fixed CSV format. The translation source word is disambiguated by language, part of speech and sense.\\
-\hline translation-loader.sql & - &  & execute from SQL console to load CSV file into a fixed SQL table \\
+\hline translation-loader.sql  & - &  & execute from SQL console to load translations CSV file into a fixed SQL table \\
 \hline 
 \end{tabular} 
 \end{footnotesize}
@@ -490,6 +491,15 @@ To provide a complete deployment environment for the Wiktionary RDF dataset, it 
 The first four are used for deployment, the statistics tool is informative and the last two are descended from a specific use case that can also serve as a best practice for similar tasks. The task in this case was to export translations to a relational schema. I choose to do it via CSV as an intermediate step, as this format is both easy to serialize and easy to load from SQL. If the need arises to do something similar (for example with synonyms), this script is easy to adapt.
 
 \subsection{Graph Layout}
+Each WLE corresponds to a graph of its extracted triples. E.g. the English Wiktionary has been converted into the graph \url{http://en.wiktionary.dbpedia.org/}. A very interesting trait of this thesis is the merging of multiple Wiktionaries into on global resource: Each WLE describes various languages (in one reader language). For example, both the German and the English Wiktionary contain information about Spanish words. Thus without parsing the Spanish Wiktionary, you get an comprehensive Spanish language resource. And the interesting part is, that \textit{URI fall together} --- when the German and the English Wiktionary describe the same word, the resulting triples describe the same RDF resource, because the URIs are constructed canonically. When you merge both graphs, you get a multilingual linguistic knowledge base --- at no additional cost. To avoid the decision if all graphs are only available merged or independent, for our deployment we chose to use the \textit{Graph Group} feature of Virtuoso. This enables the configuration of special graphs that are substituted by the group of their member graphs when used in a query. This feature can be used to virtually import multiple graphs into one global graph:
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{../images/graphs}
+\caption{A graph for each WLE, virtually imported into one global graph}
+\label{fig:graphs}
+\end{figure}
+
+Both the global and local graphs are visible simultaneously. The Linked Data view is based on the global graph. In SPARQL queries, it is up to the user, which graph to choose. 
 
 \newpage
 
