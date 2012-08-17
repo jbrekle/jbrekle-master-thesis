@@ -5,7 +5,7 @@ In the following, a short overview on underlying technologies is given.
 \begin{figure}
   \centering
     \includegraphics[width=0.5\textwidth]{layerCake.png}
-  \caption{Semantic Web Technologien}
+  \caption{Semantic Web technologies}
   \label{fig:layercake}
 \end{figure}
 
@@ -116,7 +116,7 @@ Such a graph can be used as an ontology.
 Thus ontologies in RDF format are actually graph databases which are inherently easily accessible for algorithms as opposed to natural language which always introduces ambiguity and noise. 
 It is surprisingly easy to model even complex data or schemata in graphs. 
 And additionally the formalized knowledge becomes easily accessible. 
-Implicit information can be inferred (e.g. transitive relations or inherited properties) or contractions can be detected\footnote{Access Control, Logic and Proof: \url{http://www.w3.org/2000/01/sw/#access}}.\\
+Implicit information can be inferred (e.g. transitive relations or inherited properties) or contractions can be detected\footnote{Access Control, Logic and Proof: \url{http://www.w3.org/2000/01/sw/\#access}}.\\
 In contrast to tree based models like XML, a relation does not have to be allocated to one of the participating entities. 
 This eliminates a frequent modelling dilemma. 
 Futher more such a flat net equates more to the decentral nature of the web: The information is distributed and when merging two knowledge bases --- at least at this level --- there is no problem with schema normalization (cf. \cite{hitzler}). 
@@ -126,7 +126,7 @@ Existing vocabularies are not reused due to lack of information, strategic decis
 Schema and object matching in the semantic web is subject to ongoing research.}\\
 To complete the introduction of RDF, it is necessary to present the notion of data values. For example the number 5 or the string "abc" are not assigned URIs. 
 It would make no sense as they are no independent entites within the universe of discourse. 
-They are the value of properties and so they are assigned the special node type  Literal\footnoteUrl{http://www.w3.org/TR/rdf-concepts/#section-Graph-Literal}. 
+They are the value of properties and so they are assigned the special node type  Literal\footnoteUrl{http://www.w3.org/TR/rdf-concepts/\#section-Graph-Literal}. 
 They can not be subject for further statements. 
 There are three types of literals:
 \begin{compactitem}
@@ -141,7 +141,7 @@ The NTriples serialization of a literal could be:
 ex:Alice foaf:birthday "22.09.1986"^^xsd:date
 \end{lstlisting}
 In the example a typed literal is used to represent a date. 
-The XSD vocabulary\footnoteUrl{http://www.w3.org/2001/XMLSchema#} for basic datatypes is used.
+The XSD vocabulary\footnoteUrl{http://www.w3.org/2001/XMLSchema\#} for basic datatypes is used.
 
 RDF can be stored either in text files or with in special databases called \textit{triple stores}, where common database techniques like indexing, query languages or backups are possible. 
 Some widely known triple stores are Virtuoso\footnoteUrl{http://virtuoso.openlinksw.com/dataspace/dav/wiki/Main/}, Sesame \footnoteUrl{http://www.openrdf.org/} or Jena\footnoteUrl{http://jena.apache.org/}. 
@@ -200,72 +200,76 @@ It gives data producers a roadmap to high quality data and consumers objective h
 
 \subsection{SPARQL} \label{sec:sparql}
 How can one query RDF data in a more sophisticated way that just the retrieval of single resources? One may want to search data that matches certain constraints or access a full text index over the data.
-SPARQL\footnote{\url{http://www.w3.org/TR/rdf-sparql-query/} \\
-bzw. \url{http://www.dajobe.org/2005/04-sparql/SPARQLreference-1.8-us.pdf}} steht für \emph{SPARQL Protocol and RDF Query Language} und ist eine Anfragesprache für RDF-Graphen sowie ein Protokoll für deren Nutzung über einen Webservice. Mit ihr können Literale, Ressourcen oder ganze Teilgraphen extrahiert werden. Sie hat sich aus anderen Sprachen, wie SquishQL\footnote{siehe \cite{squishQL}}, RDQL\footnoteUrl{http://www.w3.org/Submission/RDQL/}, RQL\footnoteUrl{http://139.91.183.30:9090/RDF/RQL/} oder SeRQL\footnote{siehe \cite{serql}} (vgl. \cite{compQL}), entwickelt und stellt nun den offiziellen Standard des W3C dar.\\
-Eine kurze Übersicht\footnote{Hier werden lediglich für das weitere Verständnis zentrale Ideen erläutert --- für eine umfassende und detaillierte Beschreibung ist der Standard zu konsultieren.} über die Features der Sprache werde ich im Folgenden geben.\\
+SPARQL\footnoteUrl{http://www.w3.org/TR/rdf-sparql-query/} is an recursive acronym \emph{SPARQL Protocol and RDF Query Language} which is a query language for RDF graphs and a protocol for its use over a webservice. It enables the matching of graph patterns (containing variables) in RDF graphs, thus it allows for the search and extraction of certain subgraphs. It developed from several other languages like SquishQL\footnote{cf. \cite{squishQL}}, RDQL\footnoteUrl{http://www.w3.org/Submission/RDQL/}, RQL\footnoteUrl{http://139.91.183.30:9090/RDF/RQL/} or SeRQL\footnote{cf. \cite{serql}} (cf. \cite{compQL}), and is since 2008 an official W3C recommendation.\\
+A (very) short overview about the features of the language shall be given in the following:\\
 \vspace{0.1cm}\\
-Es gibt 4 Typen von SPARQL Querys:
+There are 4 types of SPARQL Queries:
 \begin{itemize}
-	\item{SELECT um Daten, die auf ein angegebenes Muster passen (\emph{matchen}), zu extrahieren}
-	\item{ASK um zu prüfen, \emph{ob} ein Muster im Graph existiert}
-	\item{CONSTRUCT gibt einen Graph zurück, der unter Umständen durch ein Such-Muster erzeugt wurde oder explizit angegeben wird}
-	\item{DESCRIBE liefert Informationen über gematchte Ressourcen (ist nicht standardisiert, abhängig von der Konfiguration der Datenbank, oft beschreibende Eigenschaften, wenn diese eingetragen wurden)}
+	\item{SELECT extract parts of a subgraph that match a certain criteria}
+	\item{ASK to check if, a subgraph exists in the graph}
+	\item{CONSTRUCT creates a graph, which might be constructed by a search pattern}
+	\item{DESCRIBE returns information about matching resources. What is returned is not standardised, but mostly certain properties will be used to generate the description}
 \end{itemize}
-Eine SPARQL-Anfrage (Query) lässt sich in folgende Teile aufgliedern:
+A SPARQL SELECT query consists of the following parts:
 \begin{itemize}
-	\item{Prolog\\um Prefixe und Base-URI zu deklarieren. 
-	Relative URIs, die innerhalb des Querys vorkommen, werden auf die Base-URI bezogen. 
-	Prefixe sind Abkürzungen für häufig verwendete URIs} 
-	\item{Projektionsanweisung\\ähnlich SQL: Variablen (bei SQL Spalten), welche im Ergebnis sichtbar sein sollen oder "`*"' für alle verwendeten Variablen}
-	\item{Ergebnis-Modifikatoren
+	\item{Prolog\\to declare prefixes and the base URI. 
+	Relative URIs, within the query are interpreted relative to the base URI. 
+	Prefixes are abreviations for frequent or long URIs} 
+	\item{Projection\\similar to SQL: Variables (columns from SQL), which should be visible in the result or "*" for all used variables}
+	\item{Result modifiers
 	\begin{itemize}
-		\item{DISTINCT zur Duplikatentfernung} 
-		\item{REDUCED "`kann"' Duplikate entfernen, wenn dies für die Laufzeit sinnvoll ist.}
-		\item{ORDER BY sorgt für Sortierung nach einem Ausdruck (oft einer Variablen)}
-		\item{LIMIT und OFFSET um einen gewisses Intervall von Lösungen auszuwählen}
+		\item{DISTINCT for deduplication} 
+		\item{REDUCED "can" remove duplicates, if it benefits the execution time.}
+		\item{ORDER BY sorts by a expression (mostly a variable)}
+		\item{LIMIT and OFFSET restrict a certain interval of results}
 	\end{itemize}
 	}
-	\item{GraphPattern (und Construct Pattern bei CONSTRUCT Querys)\\
-	geben einen Teilgraphen an und bestehen aus Tripeln oder weiteren GraphPattern, wobei allerdings Variablen genutzt werden können --- daher der Name Pattern. 
-	Nach diesem Muster wird im Graph gesucht. 
-	Mögliche Belegungen für Variablen sind das Ergebnis.
-	Es gibt folgende GraphPattern-Typen:
-	\begin{itemize}
-		\item{GRAPH: ein elementares Pattern, bestehend aus einer beliebigen Folge von Tripeln, weiteren GraphPattern und Filtern. Ein Tripel ist eine Aussage aus dem angefragten RDF-Graph. Zwei aufeinanderfolgende Tripel werden durch einen Punkt getrennt und bilden eine Konjenktion dieser Aussagen. 
-		Die Komponenten Subjekt, Prädikat und Objekt können durch Variablen ersetzt werden.}
-		\item{OPTIONAL: ein GroupGraphPattern, das nicht notwendig ist. 
-		Das heißt: Wenn dieses Teilmuster nicht gematcht werden kann, beinflusst dies nicht das matching des gesamten Musters --- allerdings sind enthaltene Variablen dann natürlich ungebunden.} 
-		\item{UNION: verknüpft mehrere GraphPattern disjunktiv. 
-		So können Alternativen ausgedrückt werden.}
-	\end{itemize}
-	\item{Filter sind logische Ausdrücke, die für jede mögliche Lösung\footnote{Eine Lösung ist eine Kombination von Variablen-Bindings, für die das Pattern \emph{matcht}.} evaluiert werden und (wenn sie zu \emph{false} ausgewertet werden) Ergebnisse löschen können. 
-	Für die Ausdrücke steht eine logische, numerische und relative Algebra zur Verfügung, die über eingebaute und entfernte Funktionsaufrufe erweitert wurde.
+	\item{GraphPattern\\
+	declare a subgraph to be searched for, consists of triples or optional graph patterns and more. But instead of explicitly declaring a graph, variables can be used to represent resources or literals, therefore the name pattern. 
+	Possible bindings for the variables are the result of the query.
 	}
+	\item{Filter\\
+	a filter can be part of a GraphPattern and restricts variable bindings by evaluation certain expressions upon them. When the expression is evaluated to false, the result is omitted from the overall result.
 	}
 \end{itemize}
-Ein Beispiel Query:
+An example query:
 \begin{lstlisting}[style=sparql]
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ex: <http://example.org/ns#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 SELECT ?subj ?name
 WHERE {
     ?subj rdf:type foaf:Person .
     ?subj foaf:age ?age
     OPTIONAL { ?subj foaf:name ?name }
-    FILTER( ?age > 23 )
+    FILTER( ?age > 25 )
 }
 \end{lstlisting}
-Diese Anfrage findet alle Personen, die älter als 23 sind, und, wenn möglich, deren Namen. Genauer wird folgendes ausgedrückt: Zuerst wird ein Prefix deklariert, das das RDF und FOAF Vokabular abkürzt. 
-Im WHERE-Teil wird ein GraphPattern angegeben, mit dem die Variable \texttt{?subj} mit allen Ressourcen belegt wird, für die die Aussage gilt, dass sie vom Typ \texttt{Person} aus dem FOAF-Vokabular sind. 
-In der siebenten Zeile wird optional der zugehörige Name an die Variable \texttt{?name} gebunden. 
-In der sechsten und achten Zeile wird abschließend noch eine Einschränkung auf das Alter deklariert, indem zunächst der Wert an eine Variable gebunden wird und diese dann mithilfe eines Filter-Ausdrucks eingeschränkt. 
-Bei der Auswertung dieser Anfrage wird der sogenannte Triple-Store (also eine auf RDF-Daten spezialisierte Datenbank) versuchen, dieses Muster im angefragten Graph zu finden und alle möglichen Variablen-Belegungen als Ergebnis zurückliefern --- also beispielsweise eine Tabelle oder XML mittels eines speziellen Result-Set-Formats\footnoteUrl{http://www.w3.org/TR/rdf-sparql-XMLres/}.\\
-\\
+The query is evaluated against this dataset:
+\begin{lstlisting}[style=N3]
+ex:Alice a foaf:Person
+ex:Alice foaf:age "24"
+ex:Bob a foaf:Person
+ex:Bob foaf:age "26"
+\end{lstlisting}
+The query finds all persons who are older than 25. In detail the query does the following: First two prefixes are declared, one for the FOAF vocabulary and one for our custom namespace; the prefixes are then used to abbreviate URIs within the GraphPattern. 
+The WHERE part declares a GraphPattern, containing the variable \texttt{?subj} that is bound with all resources that are a \texttt{Person} from the FOAF vocabulary. 
+In the seventh line the corresponding name is optionally bound to a variable. Optional implies that even if this triple can not be satisfied, the remaining pattern matches. In the example the name is not given, so the result will contain no value for the \texttt{?age} variable.
+In the eighth line the age is restricted be greater than 25. 
+The triple store will try to match the query against the data and returns a answer in a XML based result format\footnoteUrl{http://www.w3.org/TR/rdf-sparql-XMLres/}.
+In our example there will be one result, containing a bound and a unbound variable:
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|}
+\hline subj & age \\ 
+\hline ex:Bob &  \\ 
+\hline 
+\end{tabular} 
+\end{table}
 
 \subsection{Scenarios}
 Now that we introduced many basics of the semantic web, one may ask: \textit{"What is it all good for? Why cant we solve this with traditional approaches?"}
 
-Consider this example: Alice works as a journalist. She often has to research specific fields of history or science --- fields she is no expert in --- to support her articles. One day she has the information need for \textit{"Olympia winners before 1972 from countries with less than 10 million inhabitants"}. How long will it take her? A few hours maybe. Then her boss comes and asks her to change that search to \textit{"Olympia winners whose height is 10\% above their countries average, who were born on Mondays"}. This may  make no sense or her boss may be a maniac, but apparently the information is available somewhere in the internet --- most probably even in Wikipedia alone. And one could find it --- but it would take ages. Except if this information would be available in RDF. Then it would be seconds. This example should show that the computational access to information enables a vast amount of new knowledge that was hidden inside existing data.
+Consider this example: Alice works as a journalist. She often has to investigate in specific fields of history or science --- fields she is no expert in --- to support her articles. One day she has the information need for \textit{"Olympia winners before 1972 from countries with less than 10 million inhabitants"}. How long will it take her? A few hours maybe. Then her boss comes and asks her to change that article to \textit{"Olympia winners whose height is 10\% above their countries average, who were born on Mondays"}. This may make no sense or her boss may be a maniac, but apparently the information is available somewhere in the internet --- most probably even in Wikipedia alone. And one could find it --- but it would take ages. Except if this information would be available in RDF. Then it would be seconds. This example should show that the computational access to information exposes a vast amount of new knowledge that was hidden inside existing data.
 
 Two problems come into play when trying to solve this scenario, which is an example for the research area of \textit{question answering}:
 
@@ -276,8 +280,7 @@ Two problems come into play when trying to solve this scenario, which is an exam
 
 The first could be solved by formalizing the question into a SPARQL query (by some black box of natural language processing magic), step 2 would require the information present in Wikipedia to be available in RDF.
 
-The solution of the first one could be even assisted by the outcome of this thesis, as it provides for a large language resource, that can disambiguate query terms. The second one is tackled by a related (and yet larger and more important) project, which is presented in the next section.
-
+The solution of the first one could be even assisted by the outcome of this thesis, as it provides for a large language resource, that can disambiguate query terms. The second one can tackled by a related (and yet larger and more important) project, which is presented in the next section.
 
 \subsection{DBpedia}
 To describe the Wikipedia and DBpedia project, I found it is highly sufficient to simply quote from each of their self-portrayals:

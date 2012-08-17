@@ -68,11 +68,11 @@ The schema for this tree is restricted by the ELE guidelines\footnote{For Englis
 The entities illustrated in Figure~\ref{fig:example} of the ER diagram will be called \textit{block} from now on. 
 The schema can differ between WLEs and normally evolves over time.
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 \centering
-\includegraphics[width=0.9\textwidth]{./images/example-page.png}
+\includegraphics[width=0.85\textwidth]{./images/example-page.png}
 \vspace{0.3cm}
-\hspace{0.1cm}
+\rule{0.8\linewidth}{0.5pt}
 \includegraphics[width=0.9\textwidth]{./images/entrylayout.png}
 \caption{Example page \texttt{http://en.wiktionary.org/wiki/semantic} and underlying schema (only valid for the English \wik, other WLE might look very different.)}
 \label{fig:example}
@@ -92,14 +92,15 @@ Overall, the issues to face can be summed up as
 \item the human-centric nature of a wiki.
 \end{enumerate}  
 From perspective of requirements engineering, they result in a number of requirements, that do not easily fit together. Figure \ref{fig:requirements} illustrates the different requirements.
-\begin{figure}[tb]
+
+\begin{figure}[htb]
 \centering
 \includegraphics[width=0.4\textwidth]{../images/requirements}
 \caption{Competing requirements in wiki scale data extraction}
 \label{fig:requirements}
 \end{figure}
-The requirement "Expressiveness" is the sum of all functional requirements. The other two are non-functional as they regard the long term sustainability of the development process.
-Approaches with hard coded algorithms mostly cover only the first requirement. If a modular architecture is used, it might be easy to cover the "Flexibility to new WLE"; a extractor for each WLE might be hard coded. Although it might be arguable whether the growing code base stays maintainable, with sufficient effort of software developers, such an approach theoretically could scale. However development costs could be reduced drastically if the extraction is maintained by users. The two non-functional requirements conflict with expressiveness as they are implemented with a declarative pattern in our case (and I argue that it is essential to do so, because only a declarative approach can hide the complexity). The more feature the declarative language supports, the harder it becomes for non experts to use it. In section \ref{sec:implementation} it will be shown which trade off is chosen. 
 
+The requirement "Expressiveness" is the sum of all functional requirements. The other two are non-functional as they regard the long term sustainability of the development process.
+Approaches with hard coded algorithms mostly cover only the first requirement. If a modular architecture is used, it might be easy to cover the "Flexibility to new WLE"; a extractor for each WLE might be hard coded. Although it might be arguable whether the growing code base stays maintainable, with sufficient effort of software developers, such an approach theoretically could scale. However development costs could be reduced drastically if the extraction is maintained by users. The two non-functional requirements conflict with expressiveness as they are implemented with a declarative pattern in our case (and I argue that it is essential to do so, because only a declarative approach can hide the complexity). The more features the declarative language supports, the harder it becomes for non experts to use it. In section \ref{sec:implementation} it will be shown which trade off is chosen. 
 
 \newpage

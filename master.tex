@@ -1,6 +1,6 @@
 \documentclass[a4paper]{scrartcl}
 \usepackage{palatino}
-\usepackage{url}
+%\usepackage{url}
 %\usepackage{xcolor}
 %\usepackage[colorlinks=true, linkcolor=black, linkbordercolor=blue, urlbordercolor=blue, urlcolor=black, pdfborderstyle={/S/U/W .5}]{hyperref}
 %\usepackage{breakurl}
@@ -9,7 +9,7 @@
 \usepackage{fancyhdr}
 %\usepackage{comment}
 %\usepackage{printlen} % Print lengths using specified units. 
-%\usepackage{hyperref}
+\usepackage[pdfborder=0 0 0]{hyperref}
 %\usepackage{booktabs}
 \usepackage[utf8]{inputenc} % Umlaute üöä auch normal benutzen und nicht maskieren
 %\usepackage[rightcaption]{sidecap}  % caption beside figure
@@ -66,8 +66,8 @@
                {ü}{{\"u}}1
 }
 %\lstdefinestyle{rdf}{numberblanklines=true, morekeywords={}}
-\lstdefinestyle{sparql}{numberblanklines=true, morekeywords={SELECT, WHERE, FILTER, GROUP BY, IN, AS, LIMIT, OFFSET, PREFIX, OPTIONAL, UNION}}
-\lstdefinestyle{N3}{numberblanklines=true, morekeywords={foaf, prefix, rdf, skos, rdfs}}
+\lstdefinestyle{sparql}{numberblanklines=true, morekeywords={SELECT, FROM, WHERE, FILTER, GROUP BY, IN, AS, LIMIT, OFFSET, PREFIX, OPTIONAL, UNION}}
+\lstdefinestyle{N3}{numberblanklines=true, morekeywords={foaf, prefix, rdf, skos, rdfs, ex, xsd, wr, wt, dc, lemon, doap, @prefix}}
 \lstdefinestyle{wikitext}{numberblanklines=true, morekeywords={\{\{, \}\}, =, |, [[, ]]}}
 %\usepackage{textcomp}
 \lstdefinestyle{XML}
@@ -86,8 +86,11 @@
 %\usepackage{pdfmarginpar}\newcommand{\todo}[1]{\pdfmarginpar[Note]{ToDo: #1}}
 %\newcommand{\todo}[1]{}
 
-%\hypersetup{colorlinks=false}
+\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black}
 
+%resize texttt (doesnt play well with palatino I guess )
+%\let\Oldtexttt\texttt
+%\renewcommand{\texttt}{\small\Oldtexttt}
 
 \newcommand{\NAME}{Flexible RDF data extraction from Wiktionary}
 

@@ -240,7 +240,7 @@ The use of the \lemon vocabulary and model as an additional schema layer can be 
 This approach is both lightweight and effective as it takes advantage of \textit{multi-schema modelling}.
 
 \subsection{Configuration}
-As presented in section \ref{sec:requirements}, the most important requirement of the approach is configurability. The extractor itself is as generic as possible, it is not tailored to linguistics or even \wik. 
+As presented in section \ref{sec:problem}, the most important requirement of the approach is configurability. The extractor itself is as generic as possible, it is not tailored to linguistics or even \wik. 
 It has commitment to wiki syntax, but is also able to process plain text as it can be interpreted as wikitext without markup, thus the extractor may be suitable for most flat file formats. 
 However the configuration makes up the heart of the extractor: it is a big XML file interpreted at runtime and describes how to interpret the page. 
 I will go through the available options and show their relevance to the given requirements.
@@ -287,7 +287,7 @@ It is used to provide a mapping from ISO 639-1 and -2 codes to the \wik vocabula
 
 The language specific configuration is probably the most important part of this thesis. 
 The created XML dialect directly reflects the expressiveness of the extraction approach. 
-As explained in section \ref{sec:requirements}, the expressiveness is limited by the complexity of the declarative language. 
+As explained in section \ref{sec:problem}, the expressiveness is limited by the complexity of the declarative language. 
 However he declarative language should remain simple to keep it easily usable by non experts. 
 The interpreter should be as generic as possible. 
 In the following I will present which trade off was chosen and how the layout of a WLE is modelled in our XML dialect.

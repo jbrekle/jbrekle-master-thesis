@@ -8,7 +8,7 @@ The has extraction been conducted on August 15th 2012, and the used XML dumps we
 
 \subsection{Example Data}
 Just for reference, I present some sample data. It is extracted from the English Wiktionary entry for \textit{goggles}\footnoteUrl{http://en.wiktionary.org/wiki/googles}:
-\begin{lstlisting}
+\begin{lstlisting}[style=N3]
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix wt: <http://wiktionary.dbpedia.org/terms/>.
@@ -51,7 +51,34 @@ wr:goggles-English-Noun-1en wt:hasMeaning "Protective eyewear set in a flexible 
 wr:goggles-English-Noun-1en rdf:type lemon:LexicalSense . 
 wr:goggles-English-Noun-1en rdf:type wt:Sense . 
 wr:goggles-English-Noun-1en wt:hasEtymology "Probably from goggle from the appearance it gives the wearer."@en . 
+wr:goggles-English-Noun-1en wt:hasTranslation wr:Schutzbrille-German . 
+wr:goggles-English-Noun-1en wt:hasTranslation wr:occhiali_protettivi-Italian . 
+...
 \end{lstlisting}
+
+Given this data, one can now run SPARQL queries against the data, for example:
+\begin{lstlisting}[style=sparql]
+PREFIX wt:<http://wiktionary.dbpedia.org/terms/>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
+SELECT ?swordRes ?sword ?slang ?spos ?ssense ?twordRes ?tword ?tlang
+FROM <http://wiktionary.dbpedia.org/>
+WHERE {
+    ?swordRes wt:hasTranslation ?twordRes .
+    OPTIONAL {
+        ?swordRes rdfs:label ?sword .
+        ?swordRes dc:language ?slang .
+        ?swordRes wt:hasPoS ?spos .
+    }
+    OPTIONAL { ?swordRes wt:hasMeaning ?ssense . }
+    OPTIONAL { 
+        ?twordBaseRes wt:hasLangUsage ?twordRes . 
+        ?twordBaseRes rdfs:label ?tword .
+    }
+    OPTIONAL { ?twordRes dc:language ?tlang . }
+}
+\end{lstlisting}
+This query retrieves all translation pairs, augmented with a disambiguation towards language, part of speech and sense definition of the source word. Analogously e.g. synonym pairs can be queried.
 
 \subsection{Quantity Measurement}
 We used some simple counting queries to measure the \textit{dimensions} of the RDF data. This includes number of it entries in the dictionary, or when seen as a graph, the number of edges and vertices or the number of distinct used predicates. 
